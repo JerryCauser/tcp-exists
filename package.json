@@ -1,10 +1,17 @@
 {
   "name": "tcp-exists",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "A small function to check if some tcp endpoint exists.",
   "main": "index.mjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "release:patch": "standard-version --release-as patch",
+    "release:minor": "standard-version --release-as minor",
+    "release:major": "standard-version --release-as major",
+    "push-release": "git push --follow-tags origin master",
+    "prettify": "prettier --write -u './*.m*js' './**/*.m*js'",
+    "test": "standard",
+    "fix": "npm run prettify && standard --fix",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
@@ -18,5 +25,11 @@
   "bugs": {
     "url": "https://github.com/JerryCauser/tcp-exists/issues"
   },
-  "homepage": "https://github.com/JerryCauser/tcp-exists#readme"
+  "homepage": "https://github.com/JerryCauser/tcp-exists#readme",
+  "devDependencies": {
+    "husky": "^7.0.4",
+    "prettier": "^2.4.1",
+    "standard": "^16.0.4",
+    "standard-version": "^9.3.2"
+  }
 }
