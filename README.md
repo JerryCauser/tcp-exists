@@ -12,7 +12,7 @@ npm i tcp-exists --save
 
 ## Simple usage
 ```javascript
-import { tcpExistsOne } from 'tcpExists'
+import { tcpExistsOne } from 'tcp-exists'
 
 const exist = await tcpExistsOne('8.8.8.8', 53, 25)
 // check existance of endpoint 8.8.8.8:53 with timeout in 25ms
@@ -49,7 +49,7 @@ It is an async function to check multiple endpoints. If size of endpoints you wa
 
 #### Usage:
 ```javascript
-import { tcpExistsChunk } from 'tcpExists'
+import { tcpExistsChunk } from 'tcp-exists'
 
 const endpoints = [
   ['8.8.8.8', 53],
@@ -85,7 +85,7 @@ Useful to use with large amount of endpoints.
 
 #### Usage
 ```javascript
-import { tcpExistsMany } from 'tcpExists'
+import { tcpExistsMany } from 'tcp-exists'
 
 const host = '8.8.8.8'
 const endpoints = Array.from({ length: 65535 }).map((_, port) => [host, port + 1]) // every port of 8.8.8.8
