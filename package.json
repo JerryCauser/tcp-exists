@@ -18,11 +18,13 @@
     "url": "git+https://github.com/JerryCauser/tcp-exists.git"
   },
   "keywords": [
-    "tcp",
-    "port scanner",
-    "network scanner",
-    "network",
     "scanner",
+    "tcp",
+    "tcp scanner",
+    "port",
+    "port scanner",
+    "network",
+    "network scanner",
     "nmap"
   ],
   "author": "Artem Abzanov",

@@ -1,7 +1,7 @@
 # tcp-exists
-A small zero-dependency library to check if some tcp endpoint (or many) exists.
-
-`tcp-exists` is an ESM-only module.
+- A small zero-dependency library to check if some tcp endpoint (or many) exists
+- Scans `65536` endpoints in `~20sec` (via tcpExistsMany)
+- `tcp-exists` is an ESM-only module
 
 ## Install
 
@@ -30,6 +30,8 @@ Arguments:
 
 Returns:
 - `<Promise<boolean>>`
+
+
 
 
 ### tcpExistsChunk(endpoints[, options])
@@ -61,6 +63,8 @@ const result = await tcpExistsChunk(endpoints)
 console.log(result)
 // all existed endpoints in format [host, port, existed][]
 ```
+
+
 
 
 ### tcpExistsMany(endpoints[, options])
@@ -95,3 +99,11 @@ for await (const existedEndpoints of tcpExistsMany(endpoints)) {
 console.log(result)
 // all existed endpoints in format [host, port, existed][]
 ```
+
+
+## P.S.
+
+There is better alternative of port scanner to use in shell written in rust [RustScan](https://github.com/RustScan/RustScan) (scans 65536 ports in **3s**)
+
+License ([MIT](LICENSE))
+
