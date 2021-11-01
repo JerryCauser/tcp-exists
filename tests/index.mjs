@@ -98,12 +98,7 @@ async function testOneAbort () {
   setTimeout(() => ac.abort(), ABORT_TIMEOUT)
 
   let time = Date.now()
-  const result = await tcpExistsOne(
-    '8.8.8.8',
-    15000,
-    2000,
-    ac.signal
-  )
+  const result = await tcpExistsOne('8.8.8.8', 15000, 2000, ac.signal)
   time = Math.round((Date.now() - time) / 100) * 100
 
   assert.deepStrictEqual(
@@ -137,7 +132,11 @@ async function testManyAbort () {
 
   const result = []
 
-  const gen = tcpExistsMany(endpointsToCheck, { timeout: 200, chunkSize: 1, signal: ac.signal })
+  const gen = tcpExistsMany(endpointsToCheck, {
+    timeout: 200,
+    chunkSize: 1,
+    signal: ac.signal
+  })
   for await (const chunk of gen) {
     Array.prototype.push.apply(result, chunk)
   }
