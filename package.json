@@ -9,7 +9,7 @@
     "release:major": "standard-version --release-as major",
     "push-release": "git push --follow-tags origin master",
     "prettify": "prettier --write -u './*.m*js' './**/*.m*js'",
-    "test": "standard",
+    "test": "standard && node ./tests/index.mjs",
     "fix": "npm run prettify && standard --fix",
     "prepare": "husky install"
   },
