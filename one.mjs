@@ -23,14 +23,15 @@ const handleSuccess = (resolve, socket) => {
  * @param {string} host
  * @param {number|string} port
  * @param {number} [timeout=100] - ms
+ * @param {AbortSignal} [signal]
  * @return {Promise<boolean>}
  */
-async function tcpExistsOne (host, port, timeout = 100) {
+async function tcpExistsOne (host, port, timeout = 100, signal) {
   return await new Promise((resolve) => {
     let socket
 
     try {
-      socket = net.connect(port, host)
+      socket = net.connect({ port, host, signal })
       socket.setTimeout(timeout)
       socket.once('connect', () => handleSuccess(resolve, socket))
       socket.once('error', () => handleFail(resolve, socket))

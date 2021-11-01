@@ -1,5 +1,5 @@
 # tcp-exists
-- A small zero-dependency library to check if some tcp endpoint (or many) exists
+- A small zero-dependency library to check if some tcp endpoint (or many) exists. Can be used as a port scanner
 - Scans `65536` endpoints in `~20sec` (via tcpExistsMany)
 - `tcp-exists` is an ESM-only module
 
@@ -9,8 +9,19 @@
 npm i tcp-exists --save
 ```
 
+## Description
 
-## Simple usage
+### tcpExistsOne(host, port[, timeout[, signal]])
+Arguments:
+- `host` `<string>`
+- `port` `<string> | <number>`
+- `timeout` `<number>` - optional number of `ms`. **Default:** `100`
+- `signal` `<AbortSignal>` - optional. An AbortSignal that may be used to close a socket and return result ASAP.
+
+Returns:
+- `<Promise<boolean>>`
+
+### Usage
 ```javascript
 import { tcpExistsOne } from 'tcp-exists'
 
@@ -19,18 +30,6 @@ const exist = await tcpExistsOne('8.8.8.8', 53, 25)
 
 console.log(exist) // true
 ```
-
-## Description
-
-### tcpExistsOne(host, port[, timeout])
-Arguments:
-- `host` `<string>`
-- `port` `<string> | <number>`
-- `timeout` `<number>` - optional number of `ms`. **Default:** `100`
-
-Returns:
-- `<Promise<boolean>>`
-
 
 
 
@@ -42,6 +41,7 @@ It is an async function to check multiple endpoints. If size of endpoints you wa
 - `options` `<object>` - optional
     - `timeout` `<number>` - optional number of `ms` to execute on chunk. **Default:** `1000`
     - `returnOnlyExisted` `<boolean>` - optional flag to exclude all non-existed results. **Default:** `true`
+    - `signal` `<AbortSignal>` - optional. An AbortSignal that may be used to close a sockets and return result ASAP.
 
 #### Returns:
 - `<Promise<[string, string|number, boolean][]>>` - will return `array` of `[host, port, existed]`
@@ -78,6 +78,7 @@ Useful to use with large amount of endpoints.
     - `chunkSize` `<number>` - optional chunk size of endpoints to process at once. **Default:** `4096`
     - `timeout` `<number>` - optional number of `ms` to execute on chunk. **Default:** `1000`
     - `returnOnlyExisted` `<boolean>` - optional flag to exclude all non-existed results. **Default:** `true`
+    - `signal` `<AbortSignal>` - optional. An AbortSignal that may be used to close a sockets, stop iteration and return last chunk result ASAP.
 
 #### Returns:
 - `<AsyncGenerator<[string, string|number, boolean][]>>` - generator will yield `array` of `[host, port, existed]`

@@ -23,6 +23,7 @@
     "tcp scanner",
     "port",
     "port scanner",
+    "portscanner",
     "network",
     "network scanner",
     "nmap"
