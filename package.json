@@ -1,6 +1,6 @@
 {
   "name": "tcp-exists",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "A small function to check if some tcp endpoint exists.",
   "main": "index.mjs",
   "scripts": {
