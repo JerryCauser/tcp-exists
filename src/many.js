@@ -1,4 +1,4 @@
-import tcpExistsChunk from './chunk.mjs'
+import tcpExistsChunk from './chunk.js'
 
 /**
  * Attention: passed list will be empty after execution

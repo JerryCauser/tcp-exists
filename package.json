@@ -2,14 +2,23 @@
   "name": "tcp-exists",
   "version": "1.2.0",
   "description": "A small function to check if some tcp endpoint exists.",
-  "main": "index.mjs",
+  "type": "module",
+  "main": "cjs/index.js",
+  "module": "index.js",
+  "exports": {
+    ".": {
+      "require":  "./cjs/index.js",
+      "default": "./index.js"
+    }
+  },
   "scripts": {
+    "build": "esbuild index.js --bundle --platform=node --target=node12 --outfile='./cjs/index.js'",
     "release:patch": "standard-version --release-as patch",
     "release:minor": "standard-version --release-as minor",
     "release:major": "standard-version --release-as major",
     "push-release": "git push --follow-tags origin master",
-    "prettify": "prettier --write -u './*.m*js' './**/*.m*js'",
-    "test": "standard && node ./tests/index.mjs",
+    "prettify": "prettier --write -u './*.js' './**/*.js' !./cjs/index.js",
+    "test": "standard && node tests/index.js && node cjs/test.js",
     "fix": "npm run prettify && standard --fix",
     "prepare": "husky install"
   },
@@ -35,9 +44,13 @@
   },
   "homepage": "https://github.com/JerryCauser/tcp-exists#readme",
   "devDependencies": {
+    "esbuild": "^0.14.2",
     "husky": "^7.0.4",
-    "prettier": "^2.4.1",
+    "prettier": "^2.5.1",
     "standard": "^16.0.4",
     "standard-version": "^9.3.2"
+  },
+  "standard": {
+    "ignore": ["cjs/index.js"]
   }
 }

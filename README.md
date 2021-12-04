@@ -1,7 +1,7 @@
 # tcp-exists
 - A small zero-dependency library to check if some tcp endpoint (or many) exists. Can be used as a port scanner
 - Scans `65536` endpoints in `~20sec` (via tcpExistsMany)
-- `tcp-exists` is an ESM-only module
+- Lib supports both: ESM and CJS 
 
 ## Install
 

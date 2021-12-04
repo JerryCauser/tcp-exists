@@ -2,7 +2,7 @@
 node_modules
 .DS_Store
 .husky
-CHANGELOG.md
-tests
 .gitignore
 .git
+tests
+cjs/test.js
