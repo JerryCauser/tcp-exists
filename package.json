@@ -44,10 +44,10 @@
   },
   "homepage": "https://github.com/JerryCauser/tcp-exists#readme",
   "devDependencies": {
-    "esbuild": "^0.14.2",
+    "esbuild": "^0.14.38",
     "husky": "^7.0.4",
-    "prettier": "^2.5.1",
-    "standard": "^16.0.4",
+    "prettier": "^2.6.2",
+    "standard": "^17.0.0",
     "standard-version": "^9.3.2"
   },
   "standard": {
