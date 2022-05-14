@@ -44,15 +44,20 @@
   },
   "homepage": "https://github.com/JerryCauser/tcp-exists#readme",
   "devDependencies": {
-    "esbuild": "^0.14.38",
-    "husky": "^7.0.4",
+    "esbuild": "^0.14.39",
+    "husky": "^8.0.1",
     "prettier": "^2.6.2",
     "standard": "^17.0.0",
     "standard-version": "^9.3.2"
   },
-  "standard": {
-    "ignore": [
-      "cjs/index.js"
+  "eslintConfig": {
+    "extends": [
+      "eslint:recommended",
+      "standard"
     ]
-  }
+  },
+  "eslintIgnore": [
+    "cjs/index.js",
+    "cjs/constants.js"
+  ]
 }

@@ -1,12 +1,8 @@
 /* global AbortController */
+import net from 'node:net'
+import assert from 'node:assert'
 
-async function _main ({
-  net,
-  assert,
-  tcpExistsChunk,
-  tcpExistsMany,
-  tcpExistsOne
-}) {
+async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne }) {
   const PORT_FROM = 15400
   const PORT_TO = 15500
   const servers = []
