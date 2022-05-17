@@ -1,7 +1,7 @@
 import tcpExistsOne from './one.js'
 
-async function processOne (host, port, timeout) {
-  const exist = await tcpExistsOne(host, port, timeout)
+async function processOne (host, port, timeout, signal) {
+  const exist = await tcpExistsOne(host, port, timeout, signal)
 
   return [host, port, exist]
 }
