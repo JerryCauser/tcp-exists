@@ -9,13 +9,13 @@ async function processOne (host, port, timeout, signal) {
 /**
  * @param {[string, string|number][]} endpoints
  * @param {object} [options]
- * @param {number} [options.timeout=1000] - ms
+ * @param {number} [options.timeout=500] - ms. Best timeout usually is tenth of the endpoints size plus 10-20ms, but minimum 100ms
  * @param {boolean} [options.returnOnlyExisted=true]
  * @param {AbortSignal} [options.signal]
  * @return {Promise<[string, string|number, boolean][]>}
  */
 async function tcpExistsChunk (endpoints, options) {
-  const { timeout = 1000, returnOnlyExisted = true, signal } = options || {}
+  const { timeout = 500, returnOnlyExisted = true, signal } = options || {}
 
   const promises = []
 

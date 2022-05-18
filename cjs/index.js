@@ -62,7 +62,7 @@ async function processOne(host, port, timeout, signal) {
   return [host, port, exist];
 }
 async function tcpExistsChunk(endpoints, options) {
-  const { timeout = 1e3, returnOnlyExisted = true, signal } = options || {};
+  const { timeout = 500, returnOnlyExisted = true, signal } = options || {};
   const promises = [];
   for (const [host, port] of endpoints) {
     promises.push(processOne(host, port, timeout, signal));
@@ -75,8 +75,8 @@ var chunk_default = tcpExistsChunk;
 // src/many.js
 async function* tcpExistsMany(endpoints, options) {
   const {
-    timeout = 1e3,
-    chunkSize = 4096,
+    chunkSize = 1400,
+    timeout = 160,
     returnOnlyExisted = true,
     signal
   } = options || {};
