@@ -57,8 +57,8 @@ async function tcpExistsOne(host, port, timeout = 100, signal) {
 var one_default = tcpExistsOne;
 
 // src/chunk.js
-async function processOne(host, port, timeout) {
-  const exist = await one_default(host, port, timeout);
+async function processOne(host, port, timeout, signal) {
+  const exist = await one_default(host, port, timeout, signal);
   return [host, port, exist];
 }
 async function tcpExistsChunk(endpoints, options) {
