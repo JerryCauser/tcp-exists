@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.2](https://github.com/JerryCauser/tcp-exists/compare/v1.4.1...v1.4.2) (2022-05-27)
+
+
+### Bug Fixes
+
+* add sandbox to npmignore ([0024bfa](https://github.com/JerryCauser/tcp-exists/commit/0024bfafe1693c0279b4364a88fb89ca38e0ff72))
+
 ### [1.4.1](https://github.com/JerryCauser/tcp-exists/compare/v1.3.3...v1.4.1) (2022-05-27)
 
 ## [1.4.0](https://github.com/JerryCauser/tcp-exists/compare/v1.3.3...v1.4.0) (2022-05-27)
