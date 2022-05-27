@@ -5,7 +5,7 @@ import tcpExistsChunk from './chunk.js'
  * @param {[string, string|number][]} endpoints
  * @param {object} [options]
  * @param {number} [options.chunkSize=1400]
- * @param {number} [options.timeout=160 - ms. Best timeout usually is tenth of the chunkSize plus 10-20ms, but minimum 100ms
+ * @param {number} [options.timeout=160] - ms. Best timeout usually is tenth of the chunkSize plus 10-20ms, but minimum 100ms
  * @param {boolean} [options.returnOnlyExisted=true]
  * @param {AbortSignal} [options.signal]
  * @return {AsyncGenerator<[string, string|number, boolean][]>}
