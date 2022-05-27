@@ -8,7 +8,7 @@ Check if some tcp endpoint (or many) exists. Can be used as a port scanner
 
 - Zero-dependency
 - Small — just 3 functions
-- Fast. Scans `65536` endpoints in `~8sec` (via tcpExistsMany)
+- Fast — scans `65536` endpoints in `~8sec` (via tcpExistsMany)
 - ESM and CJS 
 
 ## Install
