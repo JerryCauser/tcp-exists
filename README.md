@@ -1,7 +1,15 @@
 # tcp-exists
-- A small zero-dependency library to check if some tcp endpoint (or many) exists. Can be used as a port scanner
-- Scans `65536` endpoints in `~20sec` (via tcpExistsMany)
-- Lib supports both: ESM and CJS 
+![npm](https://img.shields.io/npm/v/tcp-exists)
+![LGTM Grade](https://img.shields.io/lgtm/grade/javascript/github/JerryCauser/tcp-exists)
+[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+![GitHub](https://img.shields.io/github/license/JerryCauser/tcp-exists)
+
+Check if some tcp endpoint (or many) exists. Can be used as a port scanner
+
+- Zero-dependency
+- Small — just 3 functions
+- Fast. Scans `65536` endpoints in `~8sec` (via tcpExistsMany)
+- ESM and CJS 
 
 ## Install
 
@@ -31,6 +39,7 @@ const exist = await tcpExistsOne('8.8.8.8', 53, 25)
 console.log(exist) // true
 ```
 
+---
 
 
 ### tcpExistsChunk(endpoints[, options])
@@ -39,7 +48,7 @@ It is an async function to check multiple endpoints. If size of endpoints you wa
 #### Arguments:
 - `endpoints` `<[string, string|number][]>` - array of `[host, port]`
 - `options` `<object>` - optional
-    - `timeout` `<number>` - optional number of `ms` to execute on chunk. **Default:** `1000`
+    - `timeout` `<number>` - optional number of `ms` to execute on chunk. Best timeout usually is tenth of the endpoints size plus 10-20ms, but minimum 100ms **Default:** `500`
     - `returnOnlyExisted` `<boolean>` - optional flag to exclude all non-existed results. **Default:** `true`
     - `signal` `<AbortSignal>` - optional. An AbortSignal that may be used to close a sockets and return result ASAP.
 
@@ -64,19 +73,19 @@ console.log(result)
 // all existed endpoints in format [host, port, existed][]
 ```
 
-
+---
 
 
 ### tcpExistsMany(endpoints[, options])
-It is an async generator, that's why the only way to use it with `for await (... of ...)`.
+It is an async generator. So you can use it with `for await (... of ...)` or as a stream (check nodejs documentation).
 
 Useful to use with large amount of endpoints.
 
 #### Arguments:
 - `endpoints` `<[string, string|number][]>` - array of `[host, port]`
 - `options` `<object>` - optional
-    - `chunkSize` `<number>` - optional chunk size of endpoints to process at once. **Default:** `4096`
-    - `timeout` `<number>` - optional number of `ms` to execute on chunk. **Default:** `1000`
+    - `chunkSize` `<number>` - optional chunk size of endpoints to process at once. **Default:** `1400`
+    - `timeout` `<number>` - optional number of `ms` to execute on chunk. Best timeout usually is tenth of the endpoints size plus 10-20ms, but minimum 100ms **Default:** `160`
     - `returnOnlyExisted` `<boolean>` - optional flag to exclude all non-existed results. **Default:** `true`
     - `signal` `<AbortSignal>` - optional. An AbortSignal that may be used to close a sockets, stop iteration and return last chunk result ASAP.
 
