@@ -1,6 +1,6 @@
 {
   "name": "tcp-exists",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "description": "Small and fast functions to check if some tcp endpoint exists",
   "type": "module",
   "main": "cjs/index.js",
