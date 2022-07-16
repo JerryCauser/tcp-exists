@@ -54,6 +54,7 @@
     "standard": "^17.0.0",
     "standard-version": "^9.5.0"
   },
+  "types": "./src/index.d.ts",
   "eslintConfig": {
     "extends": [
       "eslint:recommended",
