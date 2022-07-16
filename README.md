@@ -90,7 +90,7 @@ Useful to use with large amount of endpoints.
     - `signal` `<AbortSignal>` - optional. An AbortSignal that may be used to close a sockets, stop iteration and return last chunk result ASAP.
 
 #### Returns:
-- `<AsyncGenerator<[string, string|number, boolean][]>>` - generator will yield `array` of `[host, port, existed]`
+- `<AsyncIterable<[string, string|number, boolean][]>>` - generator will yield `array` of `[host, port, existed]`
 
 
 #### Usage
