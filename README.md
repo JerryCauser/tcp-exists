@@ -1,8 +1,9 @@
 # tcp-exists
-![npm](https://img.shields.io/npm/v/tcp-exists)
-![LGTM Grade](https://img.shields.io/lgtm/grade/javascript/github/JerryCauser/tcp-exists)
+[![npm](https://img.shields.io/npm/v/tcp-exists)](https://www.npmjs.com/package/tcp-exists)
+[![tests](https://github.com/JerryCauser/tcp-exists/actions/workflows/tests.yml/badge.svg)](https://github.com/JerryCauser/tcp-exists/actions/workflows/tests.yml)
+[![LGTM Grade](https://img.shields.io/lgtm/grade/javascript/github/JerryCauser/tcp-exists)](https://lgtm.com/projects/g/JerryCauser/tcp-exists)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
-![GitHub](https://img.shields.io/github/license/JerryCauser/tcp-exists)
+[![GitHub](https://img.shields.io/github/license/JerryCauser/tcp-exists)](https://github.com/JerryCauser/tcp-exists/blob/master/LICENSE)
 
 Check if some tcp endpoint (or many) exists. Can be used as a port scanner
 

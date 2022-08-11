@@ -15,7 +15,7 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "build": "esbuild index.js --bundle --platform=node --target=node12 --outfile='./cjs/index.js'",
+    "build": "esbuild index.js --bundle --platform=node --target=node16 --outfile='./cjs/index.js'",
     "release:patch": "standard-version --release-as patch",
     "release:minor": "standard-version --release-as minor",
     "release:major": "standard-version --release-as major",
@@ -47,8 +47,8 @@
   },
   "homepage": "https://github.com/JerryCauser/tcp-exists#readme",
   "devDependencies": {
-    "@types/node": "^18.0.5",
-    "esbuild": "^0.14.49",
+    "@types/node": "^18.7.1",
+    "esbuild": "^0.15.1",
     "husky": "^8.0.1",
     "prettier": "^2.7.1",
     "standard": "^17.0.0",

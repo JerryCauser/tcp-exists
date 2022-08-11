@@ -16,7 +16,10 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target, mod));
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // index.js
@@ -30,7 +33,7 @@ __export(tcp_exists_exports, {
 module.exports = __toCommonJS(tcp_exists_exports);
 
 // src/one.js
-var import_node_net = __toESM(require("net"), 1);
+var import_node_net = __toESM(require("node:net"), 1);
 var handleFail = (resolve, socket) => {
   if (socket && !socket.destroyed)
     socket.destroy();

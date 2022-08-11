@@ -1,0 +1,8 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+npm run build
+
+git add cjs/index.js
+git commit -a -m "build: build cjs"
+
