@@ -76,10 +76,12 @@ async function tcpExistsChunk(endpoints, options) {
 var chunk_default = tcpExistsChunk;
 
 // src/many.js
+var DEFAULT_CHUNK_SIZE = 1400;
+var DEFAULT_TIMEOUT = 160;
 async function* tcpExistsMany(endpoints, options) {
   const {
-    chunkSize = 1400,
-    timeout = 160,
+    chunkSize = DEFAULT_CHUNK_SIZE,
+    timeout = DEFAULT_TIMEOUT,
     returnOnlyExisted = true,
     signal
   } = options || {};
