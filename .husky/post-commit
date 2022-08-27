@@ -4,5 +4,5 @@
 npm run build
 
 git add cjs/index.js
-git commit -a -m "build: build cjs"
+git status | grep modified | grep 'cjs/index.js' && git commit -a -m "build: build cjs"
 

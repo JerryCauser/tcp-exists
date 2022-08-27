@@ -1,8 +1,7 @@
-/* global AbortController */
 import net from 'node:net'
 import assert from 'node:assert'
 
-async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne }) {
+async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne, cli }) {
   const PORT_FROM = 15400
   const PORT_TO = 15500
   const servers = []
@@ -157,6 +156,29 @@ async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne }) {
     console.log('tcpExistsMany Abort tests passed')
   }
 
+  async function testCLI () {
+    /** cli.parseArgs
+     * test help option
+     * test verbose option
+     * test size option
+     * test timeout option
+     * test delimiter option
+     * test colorless option
+     * test 1 host
+     * test 2 hosts
+     * test 1 port
+     * test 3 port with commas
+     * test ports range
+     * test combine of 2 hosts with mixed ports
+     */
+    /** cli.formatOneResult
+     * just test format of text
+     */
+    /** cli.cmd
+     * test print to console verbose true/false with delimiter='\n'|'; '
+     */
+  }
+
   async function end () {
     await Promise.all(
       servers.map((server) => new Promise((resolve) => server.close(resolve)))
@@ -171,6 +193,8 @@ async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne }) {
   await testMany()
   await testOneAbort()
   await testManyAbort()
+
+  if (cli) await testCLI()
 
   console.log('All tests are passed')
   await end()
