@@ -10,8 +10,29 @@ Check if some tcp endpoint (or many) exists. Can be used as a port scanner
 
 - Zero-dependency
 - Small — just 3 functions
-- Fast — scans `65536` endpoints in `~8sec` (via tcpExistsMany)
+- Fast — scans `65536` endpoints in `~9sec` (via tcpExistsMany)
 - ESM and CJS 
+
+## CLI Install
+
+```bash
+npm i -g tcp-exists
+```
+
+## CLI Usage
+```bash
+tcp-exists --help # print full cli docs 
+```
+```bash
+tcp-exists example.com # scan 20 most popular ports for given host
+```
+```bash
+tcp-exists example.com:22,80,443,8000-10000,27017 # example how to provide list/ranges of ports 
+```
+
+```bash
+tcp-exists example.com:22 another.org:1-65535 # example how to scan several endpoints 
+```
 
 ## Install
 
