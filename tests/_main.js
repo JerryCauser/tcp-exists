@@ -1,8 +1,7 @@
-/* global AbortController */
 import net from 'node:net'
 import assert from 'node:assert'
 
-async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne }) {
+async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne, cli }) {
   const PORT_FROM = 15400
   const PORT_TO = 15500
   const servers = []
@@ -157,6 +156,204 @@ async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne }) {
     console.log('tcpExistsMany Abort tests passed')
   }
 
+  async function testCLIParser () {
+    const { DEFAULT_PORTS } = cli
+    const DEFAULT_PORTS_LIST = DEFAULT_PORTS.split(',')
+
+    const { help: helpShort } = cli.parseArgs(['-h'])
+    const { help: helpLong } = cli.parseArgs(['--help'])
+
+    assert.strictEqual(helpShort, true, '7.1.1 cli parser -h not parsed')
+    assert.strictEqual(helpLong, true, '7.1.2 cli parser --help not parsed')
+
+    const { verbose: verbShort } = cli.parseArgs(['-v'])
+    const { verbose: verbLong } = cli.parseArgs(['--verbose'])
+
+    assert.strictEqual(verbShort, true, '7.2.1 cli parser -v not parsed')
+    assert.strictEqual(verbLong, true, '7.2.2 cli parser --verbose not parsed')
+
+    const { colorless: clShort } = cli.parseArgs(['-cl'])
+    const { colorless: clLong } = cli.parseArgs(['--colorless'])
+    const { colorless: clGentle } = cli.parseArgs(['--colourless'])
+
+    assert.strictEqual(clShort, true, '7.3.1 cli parser -cl not parsed')
+    assert.strictEqual(clLong, true, '7.3.2 cli parser --colorless not parsed')
+    assert.strictEqual(
+      clGentle,
+      true,
+      '7.3.3 cli parser --colourless not parsed'
+    )
+
+    const sizes = [~~(Math.random() * 2000), ~~(Math.random() * 2000)]
+    const { chunkSize: sizeShort } = cli.parseArgs(['-s', sizes[0].toString()])
+    const { chunkSize: sizeLong } = cli.parseArgs([
+      '--size',
+      sizes[1].toString()
+    ])
+
+    assert.strictEqual(sizeShort, sizes[0], '7.4.1 cli parser -s not parsed')
+    assert.strictEqual(
+      sizeLong,
+      sizes[1],
+      '7.4.2 cli parser --size not parsed'
+    )
+
+    const timeouts = [~~(Math.random() * 2000), ~~(Math.random() * 2000)]
+    const { timeout: timeShort } = cli.parseArgs([
+      '-t',
+      timeouts[0].toString()
+    ])
+    const { timeout: timeLong } = cli.parseArgs([
+      '--timeout',
+      timeouts[1].toString()
+    ])
+
+    const delimiters = [Math.random().toString(), Math.random().toString()]
+    assert.strictEqual(
+      timeShort,
+      timeouts[0],
+      '7.5.1 cli parser -t not parsed'
+    )
+    assert.strictEqual(
+      timeLong,
+      timeouts[1],
+      '7.5.2 cli parser --timeout not parsed'
+    )
+
+    const { delimiter: delimShort } = cli.parseArgs(['-d', delimiters[0]])
+    const { delimiter: delimLong } = cli.parseArgs([
+      '--delimiter',
+      delimiters[1]
+    ])
+
+    assert.strictEqual(
+      delimShort,
+      delimiters[0],
+      '7.6.1 cli parser -d not parsed'
+    )
+    assert.strictEqual(
+      delimLong,
+      delimiters[1],
+      '7.6.2 cli parser --delimiter not parsed'
+    )
+
+    const toString = (iterable) => [...iterable].sort().join(';')
+    const generateGoldEndpoints = (host, ports) =>
+      toString(ports.map((p) => [host, p]))
+    const hosts = ['example.com', 'example2.com']
+    const ports = [8090, 8091, 8092]
+
+    const { endpoints: endpointsOne } = cli.parseArgs([hosts[0]])
+
+    assert.strictEqual(
+      toString(endpointsOne),
+      generateGoldEndpoints(hosts[0], DEFAULT_PORTS_LIST),
+      '7.7.1 cli parser test 1 host with defaults'
+    )
+
+    const { endpoints: endpointsTwo } = cli.parseArgs([
+      hosts[0] + ':' + ports[0],
+      hosts[1] + ':' + ports[0] + '-' + ports[2]
+    ])
+
+    assert.strictEqual(
+      toString(endpointsTwo),
+      toString(
+        [
+          generateGoldEndpoints(hosts[0], [ports[0]]),
+          generateGoldEndpoints(hosts[1], ports)
+        ]
+          .join(';')
+          .split(';')
+          .sort()
+      ),
+      '7.7.2 cli parser test 2 hosts: first with 1 port, second with 3 ports in range'
+    )
+
+    const { endpoints: endpointsComma } = cli.parseArgs([
+      hosts[1] + ':' + ports.join(',')
+    ])
+
+    assert.strictEqual(
+      toString(endpointsComma),
+      generateGoldEndpoints(hosts[1], ports),
+      '7.7.3 cli parser test 3 ports comma separated'
+    )
+
+    console.log('cli.parser tests passed')
+  }
+
+  async function testCLIFormatter () {
+    const host = 'example.com'
+    const port = '2134'
+    const positiveResult = cli.formatOneResult([host, port, true], '', true)
+    const negativeResult = cli.formatOneResult(
+      [host, parseInt(port, 10), false],
+      ';\n',
+      true
+    )
+
+    assert.strictEqual(
+      positiveResult,
+      `${host}:${port}\ton`,
+      '8.1 cli formatter test positive'
+    )
+
+    assert.strictEqual(
+      negativeResult,
+      `${host}:${port}\toff;\n`,
+      '8.2 cli formatter test negative'
+    )
+
+    console.log('cli.formatter tests passed')
+  }
+
+  async function testCLICmd () {
+    const data = []
+    process.stdout.originWrite = process.stdout.write
+    process.stdout.write = (...args) => {
+      data.push(...args)
+    }
+
+    try {
+      await cli.cmd([
+        '-cl',
+        '-d',
+        '\\n',
+        '-t',
+        '15',
+        `localhost:${PORT_FROM - 1},${PORT_FROM}`
+      ]) // should print only positive result
+
+      assert.strictEqual(
+        data[0],
+        `localhost:${PORT_FROM}\ton\n`,
+        '9.1 cli cmd only positive with \\n not correct'
+      )
+
+      data.length = 0
+
+      await cli.cmd([
+        '-cl',
+        '-d',
+        '; ',
+        '-v',
+        '-t',
+        '15',
+        `localhost:${PORT_FROM - 1}`
+      ]) // should print negative result
+      assert.strictEqual(
+        data[0],
+        `localhost:${PORT_FROM - 1}\toff; `,
+        '9.2 cli cmd all with delimiter="; " not correct'
+      )
+    } finally {
+      process.stdout.write = process.stdout.originWrite
+    }
+
+    console.log('cli.cmd tests passed')
+  }
+
   async function end () {
     await Promise.all(
       servers.map((server) => new Promise((resolve) => server.close(resolve)))
@@ -171,6 +368,12 @@ async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne }) {
   await testMany()
   await testOneAbort()
   await testManyAbort()
+
+  if (cli) {
+    await testCLIParser()
+    await testCLIFormatter()
+    await testCLICmd()
+  }
 
   console.log('All tests are passed')
   await end()

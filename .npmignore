@@ -1,9 +1,0 @@
-.idea
-node_modules
-.DS_Store
-.husky
-.gitignore
-.git
-tests
-cjs/test.js
-sandbox

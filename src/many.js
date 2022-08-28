@@ -1,5 +1,8 @@
 import tcpExistsChunk from './chunk.js'
 
+export const DEFAULT_CHUNK_SIZE = 1400
+export const DEFAULT_TIMEOUT = 160
+
 /**
  * Attention: passed list will be empty after execution
  * @param {[string, string|number][]} endpoints
@@ -12,8 +15,8 @@ import tcpExistsChunk from './chunk.js'
  */
 async function * tcpExistsMany (endpoints, options) {
   const {
-    chunkSize = 1400,
-    timeout = 160,
+    chunkSize = DEFAULT_CHUNK_SIZE,
+    timeout = DEFAULT_TIMEOUT,
     returnOnlyExisted = true,
     signal
   } = options || {}
