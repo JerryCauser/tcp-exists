@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/JerryCauser/tcp-exists/compare/v1.4.6...v1.5.0) (2022-08-28)
+
+
+### Features
+
+* add support for nonTTY mode (useful for shell piping) ([0dbc093](https://github.com/JerryCauser/tcp-exists/commit/0dbc093b1191e2346d14bf4c5f5ec28880f66b6d))
+* complete cli code and add bin field in package.json ([2324c42](https://github.com/JerryCauser/tcp-exists/commit/2324c4244534af4fcc64683526076bb7e0bec91e))
+
 ### [1.4.6](https://github.com/JerryCauser/tcp-exists/compare/v1.4.5...v1.4.6) (2022-08-11)
 
 ### [1.4.5](https://github.com/JerryCauser/tcp-exists/compare/v1.4.4...v1.4.5) (2022-07-16)
