@@ -11,12 +11,12 @@ const packageJSON = JSON.parse(
  * @param {string} str
  * @return {string}
  */
-const red = (str) => `\x1b[31m${str}\x1b[0m`
+const red = (str) => (process.stdout.isTTY ? `\x1b[31m${str}\x1b[0m` : str)
 /**
  * @param {string} str
  * @return {string}
  */
-const green = (str) => `\x1b[32m${str}\x1b[0m`
+const green = (str) => (process.stdout.isTTY ? `\x1b[32m${str}\x1b[0m` : str)
 
 const DEFAULT_PORTS_DICT = {
   21: 'ftp',
@@ -94,16 +94,16 @@ ${red('Supported environment')}
 
 ${red('Usage')}
   ${name} ${green('example.com')}
-      will scan DEFAULT_PORTS for given host
+      Will scan DEFAULT_PORTS for given host
       
   ${name} ${green('example.com')} ${green('example2.com')}
-      will scan DEFAULT_PORTS for all given hosts
+      Will scan DEFAULT_PORTS for all given hosts
     
   ${name} ${green('example.com:80,443')}
-      will scan 80 and 443 ports for given host
+      Will scan 80 and 443 ports for given host
     
   ${name} ${green('example.com:8000-8999')}
-      will scan [8000...8999] ports for given host
+      Will scan [8000...8999] ports for given host
     
   ${name} ${green('example.com:80,8000-8999,443')}
       Ports declaration can be combined.
@@ -126,9 +126,8 @@ ${red('Arguments')}
     If ${o.v} is passed then it will print all results.
     
   ${o.cl}, ${o.colourless}, ${o.colorless}
-    By default, ${name} uses colored output.
+    By default, ${name} uses colored output in TTY mode.
     You can disable it by by passing this argument.
-    Useful for terminal piping.
     
   ${o.t}, ${o.timeout} ${v.number}
     Changes default timeout (${v.timeout} ms) to await if endpoint exists.
@@ -141,6 +140,7 @@ ${red('Arguments')}
     
   ${o.h}, ${o.help}
     Prints help.
+    In TTY mode if zero endpoints recognised also will print help.
     
     
 ${red('Environment')}
@@ -164,7 +164,7 @@ export async function cmd (args, ac) {
   const { help, delimiter, timeout, chunkSize, verbose, colorless, endpoints } =
     parsed
 
-  if (help) {
+  if (help || (process.stdout.isTTY && endpoints.size === 0)) {
     process.stdout.write(getHelpText(packageJSON))
 
     return
@@ -182,6 +182,7 @@ export async function cmd (args, ac) {
       process.stdout.write(formatOneResult(result, delimiter, colorless))
     }
   }
+  process.stdout.write('\n')
 }
 
 /**
@@ -213,6 +214,15 @@ export function parseArgs (args) {
       break
     } else if (arg === '-d' || arg === '--delimiter') {
       options.delimiter = args[++i] ?? ''
+
+      if (/\\/.test(options.delimiter)) {
+        options.delimiter = options.delimiter
+          .replace(/\\t/gm, '\t')
+          .replace(/\\v/gm, '\v')
+          .replace(/\\f/gm, '\f')
+          .replace(/\\n/gm, '\n')
+          .replace(/\\r/gm, '\r')
+      }
 
       continue
     } else if (
@@ -273,13 +283,13 @@ export function parseArgs (args) {
 
 /**
  * @param {[host:string, port:string|port, exist:boolean]} endpointResult
- * @param {string} [delimiter='']
+ * @param {string} [delimiter]
  * @param {boolean} [colorless=false]
  * @return {string}
  */
 export function formatOneResult (
   endpointResult,
-  delimiter = '',
+  delimiter = DEFAULT_DELIMITER,
   colorless = false
 ) {
   const [host, port, exist] = endpointResult
