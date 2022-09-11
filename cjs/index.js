@@ -131,7 +131,11 @@ async function processOne(host, port, timeout, signal) {
   return [host, port, exist];
 }
 async function tcpExistsChunk(endpoints, options) {
-  const { timeout = DEFAULT_TIMEOUT, returnOnlyExisted = true, signal } = options || {};
+  const {
+    timeout = DEFAULT_TIMEOUT,
+    returnOnlyExisted = true,
+    signal
+  } = options || {};
   const promises = [];
   for (const [host, port] of endpoints) {
     promises.push(processOne(host, port, timeout, signal));
