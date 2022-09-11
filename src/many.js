@@ -1,11 +1,14 @@
 import tcpExistsChunk from './chunk.js'
-
-export const DEFAULT_CHUNK_SIZE = 1400
-export const DEFAULT_TIMEOUT = 160
+import {
+  getEndpoints,
+  DEFAULT_CHUNK_SIZE,
+  DEFAULT_TIMEOUT,
+  DEFAULT_PORTS
+} from './stuff.js'
 
 /**
  * Attention: passed list will be empty after execution
- * @param {[string, string|number][]} endpoints
+ * @param {[string, string|number][]|string} endpoints
  * @param {object} [options]
  * @param {number} [options.chunkSize=1400]
  * @param {number} [options.timeout=160] - ms. Best timeout usually is tenth of the chunkSize plus 10-20ms, but minimum 100ms
@@ -21,10 +24,32 @@ async function * tcpExistsMany (endpoints, options) {
     signal
   } = options || {}
 
-  while (endpoints.length > 0 && signal?.aborted !== true) {
-    const chunk = endpoints.splice(0, chunkSize)
+  if (Array.isArray(endpoints)) {
+    while (endpoints.length > 0 && signal?.aborted !== true) {
+      const chunk = endpoints.splice(0, chunkSize)
+
+      yield await tcpExistsChunk(chunk, { timeout, returnOnlyExisted, signal })
+    }
+  } else if (typeof endpoints === 'string') {
+    const chunk = []
+
+    for (const item of getEndpoints(endpoints, DEFAULT_PORTS)) {
+      if (chunk.push(item) === DEFAULT_CHUNK_SIZE) {
+        if (signal?.aborted === true) return
+
+        yield await tcpExistsChunk(chunk, {
+          timeout,
+          returnOnlyExisted,
+          signal
+        })
+        chunk.length = 0
+      }
+    }
+
+    if (signal?.aborted === true) return
 
     yield await tcpExistsChunk(chunk, { timeout, returnOnlyExisted, signal })
+    chunk.length = 0
   }
 }
 
