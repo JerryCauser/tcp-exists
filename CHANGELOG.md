@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/JerryCauser/tcp-exists/compare/v1.5.0...v1.6.0) (2022-09-12)
+
+
+### Features
+
+* add getEndpoints parser ([3a66bb1](https://github.com/JerryCauser/tcp-exists/commit/3a66bb12eda9ddb72c46d9ac319502f37444d5f9))
+
 ## [1.5.0](https://github.com/JerryCauser/tcp-exists/compare/v1.4.6...v1.5.0) (2022-08-28)
 
 
