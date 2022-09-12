@@ -1,4 +1,5 @@
 import net from 'node:net'
+import { DEFAULT_TIMEOUT } from './stuff.js'
 
 /**
  * @param {function} resolve
@@ -26,7 +27,7 @@ const handleSuccess = (resolve, socket) => {
  * @param {AbortSignal} [signal]
  * @return {Promise<boolean>}
  */
-async function tcpExistsOne (host, port, timeout = 100, signal) {
+async function tcpExistsOne (host, port, timeout = DEFAULT_TIMEOUT, signal) {
   return await new Promise((resolve) => {
     let socket
 

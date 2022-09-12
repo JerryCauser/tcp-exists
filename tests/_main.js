@@ -99,7 +99,23 @@ async function _main ({
     assert.deepStrictEqual(
       result,
       gold,
-      '4. tcpExistsMany should be equal to gold'
+      '4.1 tcpExistsMany ARRAY should be equal to gold'
+    )
+
+    const result2 = []
+
+    const gen2 = tcpExistsMany(`localhost:${PORT_FROM - 50}-${PORT_TO + 50}`, {
+      timeout: 100,
+      chunkSize: 32
+    })
+    for await (const chunk of gen2) {
+      Array.prototype.push.apply(result2, chunk)
+    }
+
+    assert.deepStrictEqual(
+      result2,
+      gold,
+      '4.2 tcpExistsMany STRING should be equal to gold'
     )
 
     console.log('tcpExistsMany tests passed')
@@ -415,9 +431,9 @@ async function _main ({
 
   await testOne()
   await testChunk()
+  await testGetEndpoints()
   await testMany()
   await testOneAbort()
-  await testGetEndpoints()
   await testManyAbort()
 
   if (cli) {

@@ -5,8 +5,7 @@ import {
   getEndpoints,
   DEFAULT_CHUNK_SIZE,
   DEFAULT_TIMEOUT,
-  DEFAULT_PORTS,
-  DEFAULT_DELIMITER
+  DEFAULT_PORTS
 } from './src/stuff.js'
 
 export {
@@ -17,6 +16,5 @@ export {
   getEndpoints,
   DEFAULT_CHUNK_SIZE,
   DEFAULT_TIMEOUT,
-  DEFAULT_PORTS,
-  DEFAULT_DELIMITER
+  DEFAULT_PORTS
 }

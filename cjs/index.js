@@ -26,7 +26,6 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var tcp_exists_exports = {};
 __export(tcp_exists_exports, {
   DEFAULT_CHUNK_SIZE: () => DEFAULT_CHUNK_SIZE,
-  DEFAULT_DELIMITER: () => DEFAULT_DELIMITER,
   DEFAULT_PORTS: () => DEFAULT_PORTS,
   DEFAULT_TIMEOUT: () => DEFAULT_TIMEOUT,
   default: () => one_default,
@@ -39,33 +38,8 @@ module.exports = __toCommonJS(tcp_exists_exports);
 
 // src/one.js
 var import_node_net = __toESM(require("node:net"), 1);
-var handleFail = (resolve, socket) => {
-  if (socket && !socket.destroyed)
-    socket.destroy();
-  resolve(false);
-};
-var handleSuccess = (resolve, socket) => {
-  socket.destroy();
-  resolve(true);
-};
-async function tcpExistsOne(host, port, timeout = 100, signal) {
-  return await new Promise((resolve) => {
-    let socket;
-    try {
-      socket = import_node_net.default.connect({ port, host, signal });
-      socket.setTimeout(timeout);
-      socket.once("connect", () => handleSuccess(resolve, socket));
-      socket.once("error", () => handleFail(resolve, socket));
-      socket.once("timeout", () => handleFail(resolve, socket));
-    } catch (e) {
-      handleFail(resolve, socket);
-    }
-  });
-}
-var one_default = tcpExistsOne;
 
 // src/stuff.js
-var DEFAULT_DELIMITER = "\n";
 var DEFAULT_CHUNK_SIZE = 2300;
 var DEFAULT_TIMEOUT = 250;
 var DEFAULT_PORTS_DICT = {
@@ -125,6 +99,32 @@ function* getEndpoints(argument, defaultPorts = DEFAULT_PORTS) {
   }
 }
 
+// src/one.js
+var handleFail = (resolve, socket) => {
+  if (socket && !socket.destroyed)
+    socket.destroy();
+  resolve(false);
+};
+var handleSuccess = (resolve, socket) => {
+  socket.destroy();
+  resolve(true);
+};
+async function tcpExistsOne(host, port, timeout = DEFAULT_TIMEOUT, signal) {
+  return await new Promise((resolve) => {
+    let socket;
+    try {
+      socket = import_node_net.default.connect({ port, host, signal });
+      socket.setTimeout(timeout);
+      socket.once("connect", () => handleSuccess(resolve, socket));
+      socket.once("error", () => handleFail(resolve, socket));
+      socket.once("timeout", () => handleFail(resolve, socket));
+    } catch (e) {
+      handleFail(resolve, socket);
+    }
+  });
+}
+var one_default = tcpExistsOne;
+
 // src/chunk.js
 async function processOne(host, port, timeout, signal) {
   const exist = await one_default(host, port, timeout, signal);
@@ -182,7 +182,6 @@ var many_default = tcpExistsMany;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   DEFAULT_CHUNK_SIZE,
-  DEFAULT_DELIMITER,
   DEFAULT_PORTS,
   DEFAULT_TIMEOUT,
   getEndpoints,

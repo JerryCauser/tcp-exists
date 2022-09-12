@@ -24,6 +24,7 @@ const DEFAULT_PORTS_DICT = {
   5900: 'vnc',
   8080: 'http-proxy'
 }
+
 export const DEFAULT_PORTS =
   process.env.DEFAULT_PORTS || Object.keys(DEFAULT_PORTS_DICT).join(',')
 
