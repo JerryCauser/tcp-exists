@@ -46,7 +46,7 @@ npm i tcp-exists --save
 Arguments:
 - `host` `<string>`
 - `port` `<string> | <number>`
-- `timeout` `<number>` - optional number of `ms`. **Default:** `100`
+- `timeout` `<number>` - optional number of `ms`. **Default:** [`DEFAULT_TIMEOUT`][timeout]
 - `signal` `<AbortSignal>` - optional. An AbortSignal that may be used to close a socket and return result ASAP.
 
 Returns:
@@ -71,7 +71,7 @@ It is an async function to check multiple endpoints. If size of endpoints you wa
 #### Arguments:
 - `endpoints` `<[string, string|number][]>` - array of `[host, port]`
 - `options` `<object>` - optional
-    - `timeout` `<number>` - optional number of `ms` to execute on chunk. Best timeout usually is tenth of the endpoints size plus 10-20ms, but minimum 100ms **Default:** `500`
+    - `timeout` `<number>` - optional number of `ms` to execute on chunk. Best timeout usually is ninth of the endpoints size, but minimum 100ms **Default:** [`DEFAULT_TIMEOUT`][timeout]
     - `returnOnlyExisted` `<boolean>` - optional flag to exclude all non-existed results. **Default:** `true`
     - `signal` `<AbortSignal>` - optional. An AbortSignal that may be used to close a sockets and return result ASAP.
 
@@ -105,33 +105,64 @@ It is an async generator. So you can use it with `for await (... of ...)` or as 
 Useful to use with large amount of endpoints.
 
 #### Arguments:
-- `endpoints` `<[string, string|number][]>` - array of `[host, port]`
+- `endpoints` `<[string, string|number][]|string>` - array of `[host, port]` or string in format `host:port,port2; host2; host3:port0-port9`
 - `options` `<object>` - optional
-    - `chunkSize` `<number>` - optional chunk size of endpoints to process at once. **Default:** `1400`
-    - `timeout` `<number>` - optional number of `ms` to execute on chunk. Best timeout usually is tenth of the endpoints size plus 10-20ms, but minimum 100ms **Default:** `160`
-    - `returnOnlyExisted` `<boolean>` - optional flag to exclude all non-existed results. **Default:** `true`
-    - `signal` `<AbortSignal>` - optional. An AbortSignal that may be used to close a sockets, stop iteration and return last chunk result ASAP.
+  - `chunkSize` `<number>` - optional chunk size of endpoints to process at once. **Default:** [`DEFAULT_CHUNK_SIZE`][chunk-size]
+  - `timeout` `<number>` - optional number of `ms` to execute on chunk. Best timeout usually is tenth of the endpoints size plus 10-20ms, but minimum 100ms **Default:** [`DEFAULT_TIMEOUT`][timeout]
+  - `returnOnlyExisted` `<boolean>` - optional flag to exclude all non-existed results. **Default:** `true`
+  - `signal` `<AbortSignal>` - optional. An AbortSignal that may be used to close a sockets, stop iteration and return last chunk result ASAP.
 
 #### Returns:
-- `<AsyncIterable<[string, string|number, boolean][]>>` - generator will yield `array` of `[host, port, existed]`
+- `<AsyncIterable<[host:string, port:string|number, exist:boolean][]>>` - generator will yield `array` of `[host, port, existed]`
 
 
 #### Usage
 ```javascript
 import { tcpExistsMany } from 'tcp-exists'
 
-const host = '8.8.8.8'
-const endpoints = Array.from({ length: 65535 }).map((_, port) => [host, port + 1]) // every port of 8.8.8.8
-
 const result = []
 
-for await (const existedEndpoints of tcpExistsMany(endpoints)) {
-  result.push(...existedEndpoints) 
+for await (const existedEndpoints of tcpExistsMany('localhost:1-65535')) {
+  result.push(...existedEndpoints)
 }
 
 console.log(result)
 // all existed endpoints in format [host, port, existed][]
 ```
+---
+
+### getEndpoints(argument[, defaultPorts])
+It is a generator. So you can use it with `for (... of ...)` or destruct into array `[...getEndpoints('example.com:1-65535')]`
+
+#### Arguments:
+- `argument` `<string|string[]>` - string in format `host:port,port2; host2; host3:port0-port9` or array like this `['host1', 'host2:port1,port2', 'host3:port0-port9']`
+- `defaultPorts` `<string>` - optional. Comma separated string of ports. **Default:** [`DEFAULT_PORTS`][ports] 
+
+#### Returns:
+- `<Generator<[string, string|number]>>` - generator will yield `array` of `[host, port]`
+
+
+#### Usage
+```javascript
+import { getEndpoints, tcpExistsOne } from 'tcp-exists'
+
+for (const [host, port] of getEndpoints('localhost:1-65535')) {
+  if (await tcpExistsOne(host, port)) console.log(host, port, 'exists')
+}
+```
+
+---
+
+### Constants
+
+#### DEFAULT_CHUNK_SIZE
+- `<number>` : `2300`
+  
+#### DEFAULT_TIMEOUT
+- `<number>` : `250` ms
+
+#### DEFAULT_PORTS
+- `<string>` : `'21,22,23,25,53,80,110,111,135,139,143,443,445,993,995,1723,3306,3389,5900,8080'`
 
 
 ## P.S.
@@ -140,3 +171,6 @@ There is better alternative of port scanner to use in shell written in rust [Rus
 
 License ([MIT](LICENSE))
 
+[chunk-size]: #DEFAULT_CHUNK_SIZE
+[timeout]: #DEFAULT_TIMEOUT
+[ports]: #DEFAULT_PORTS

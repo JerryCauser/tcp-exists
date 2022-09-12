@@ -1,47 +1,17 @@
 import fs from 'node:fs'
-import tcpExistsMany, { DEFAULT_TIMEOUT, DEFAULT_CHUNK_SIZE } from './many.js'
-
-const DEFAULT_DELIMITER = '\n'
+import {
+  red,
+  green,
+  DEFAULT_DELIMITER,
+  DEFAULT_PORTS,
+  DEFAULT_TIMEOUT,
+  DEFAULT_CHUNK_SIZE
+} from './stuff.js'
+import tcpExistsMany from './many.js'
 
 const packageJSON = JSON.parse(
   fs.readFileSync(new URL('../package.json', import.meta.url)).toString()
 )
-
-/**
- * @param {string} str
- * @return {string}
- */
-const red = (str) => (process.stdout.isTTY ? `\x1b[31m${str}\x1b[0m` : str)
-/**
- * @param {string} str
- * @return {string}
- */
-const green = (str) => (process.stdout.isTTY ? `\x1b[32m${str}\x1b[0m` : str)
-
-const DEFAULT_PORTS_DICT = {
-  21: 'ftp',
-  22: 'ssh',
-  23: 'telnet',
-  25: 'smtp',
-  53: 'domain name system',
-  80: 'http',
-  110: 'pop3',
-  111: 'rpcbind',
-  135: 'msrpc',
-  139: 'netbios-ssn',
-  143: 'imap',
-  443: 'https',
-  445: 'microsoft-ds',
-  993: 'imaps',
-  995: 'pop3s',
-  1723: 'pptp',
-  3306: 'mysql',
-  3389: 'ms-wbt-server',
-  5900: 'vnc',
-  8080: 'http-proxy'
-}
-export const DEFAULT_PORTS =
-  process.env.DEFAULT_PORT || Object.keys(DEFAULT_PORTS_DICT).join(',')
 
 /**
  *
@@ -164,24 +134,25 @@ export async function cmd (args, ac) {
   const { help, delimiter, timeout, chunkSize, verbose, colorless, endpoints } =
     parsed
 
-  if (help || (process.stdout.isTTY && endpoints.size === 0)) {
+  if (help || (process.stdout.isTTY && endpoints.length === 0)) {
     process.stdout.write(getHelpText(packageJSON))
 
     return
   }
 
-  const generator = tcpExistsMany([...endpoints], {
+  const options = {
     timeout,
-    chunkSize,
     returnOnlyExisted: !verbose,
+    chunkSize,
     signal: ac?.signal
-  })
+  }
 
-  for await (const chunkResult of generator) {
-    for (const result of chunkResult) {
-      process.stdout.write(formatOneResult(result, delimiter, colorless))
+  for await (const chunkResult of tcpExistsMany(endpoints.join(';'), options)) {
+    for (const oneResult of chunkResult) {
+      process.stdout.write(formatOneResult(oneResult, delimiter, colorless))
     }
   }
+
   process.stdout.write('\n')
 }
 
@@ -200,9 +171,9 @@ export function parseArgs (args) {
     colorless: false,
     verbose: false,
     delimiter: DEFAULT_DELIMITER,
-    chunkSize: undefined,
-    timeout: undefined,
-    endpoints: new Set()
+    chunkSize: DEFAULT_CHUNK_SIZE,
+    timeout: DEFAULT_TIMEOUT,
+    endpoints: []
   }
 
   for (let i = 0; i < args.length; ++i) {
@@ -240,49 +211,25 @@ export function parseArgs (args) {
     } else if (arg === '-t' || arg === '--timeout') {
       options.timeout = parseInt(args[++i], 10)
 
-      if (isNaN(options.timeout)) options.timeout = undefined
+      if (isNaN(options.timeout)) options.timeout = DEFAULT_TIMEOUT
 
       continue
     } else if (arg === '-s' || arg === '--size') {
       options.chunkSize = parseInt(args[++i], 10)
 
-      if (isNaN(options.chunkSize)) options.chunkSize = undefined
+      if (isNaN(options.chunkSize)) options.chunkSize = DEFAULT_CHUNK_SIZE
 
       continue
     }
 
-    let [host, ports] = arg.split(':')
-    host = host?.trim().toLowerCase()
-    ports = ports?.trim().toLowerCase() || DEFAULT_PORTS
-
-    if (!host) continue
-
-    for (const portChunk of ports.split(',')) {
-      if (portChunk.includes('-')) {
-        let [fromPort, toPort] = portChunk.split('-')
-        fromPort = Math.max(1, Math.abs(parseInt(fromPort, 10)))
-        toPort = Math.min(65535, Math.abs(parseInt(toPort, 10)))
-
-        if (isNaN(fromPort) || isNaN(toPort)) continue
-
-        if (fromPort > toPort) {
-          [fromPort, toPort] = [toPort, fromPort]
-        }
-
-        for (let p = fromPort; p <= toPort; ++p) {
-          options.endpoints.add([host, p])
-        }
-      } else {
-        options.endpoints.add([host, portChunk])
-      }
-    }
+    options.endpoints.push(arg)
   }
 
   return options
 }
 
 /**
- * @param {[host:string, port:string|port, exist:boolean]} endpointResult
+ * @param {[host:string, port:(string|number), exist:boolean]} endpointResult
  * @param {string} [delimiter]
  * @param {boolean} [colorless=false]
  * @return {string}

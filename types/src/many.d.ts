@@ -1,14 +1,11 @@
-export default tcpExistsMany
+import { TcpExistsEndpoint, TcpExistsResult } from './chunk'
 
-export const DEFAULT_CHUNK_SIZE:number
-export const DEFAULT_TIMEOUT:number
-
-declare function tcpExistsMany(
-    endpoints: [string, string | number][],
-    options?: {
-        chunkSize?: number
-        timeout?: number
-        returnOnlyExisted?: boolean
-        signal?: AbortSignal
-    }
-): AsyncIterable<[string, string | number, boolean][]>
+export default function tcpExistsMany(
+  endpoints: string | TcpExistsEndpoint[],
+  options?: {
+    chunkSize?: number
+    timeout?: number
+    returnOnlyExisted?: boolean
+    signal?: AbortSignal
+  }
+): AsyncIterable<TcpExistsResult[]>

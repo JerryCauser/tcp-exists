@@ -1,10 +1,15 @@
-export default tcpExistsChunk
+export type TcpExistsEndpoint = [host: string, port: string | number]
+export type TcpExistsResult = [
+  host: string,
+  port: string | number,
+  result: boolean
+]
 
-declare function tcpExistsChunk(
-  endpoints: [string, string | number][],
+export default function tcpExistsChunk(
+  endpoints: TcpExistsEndpoint[],
   options?: {
     timeout?: number
     returnOnlyExisted?: boolean
     signal?: AbortSignal
   }
-): Promise<[string, string | number, boolean][]>
+): Promise<TcpExistsResult[]>

@@ -1,5 +1,13 @@
 import tcpExistsOne from './one.js'
+import { DEFAULT_TIMEOUT } from './stuff.js'
 
+/**
+ * @param {string} host
+ * @param {string|number} port
+ * @param {number} timeout
+ * @param {AbortSignal} signal
+ * @return {Promise<TcpExistsResult>}
+ */
 async function processOne (host, port, timeout, signal) {
   const exist = await tcpExistsOne(host, port, timeout, signal)
 
@@ -7,15 +15,19 @@ async function processOne (host, port, timeout, signal) {
 }
 
 /**
- * @param {[string, string|number][]} endpoints
+ * @param {Iterable<TcpExistsEndpoint>} endpoints
  * @param {object} [options]
- * @param {number} [options.timeout=500] - ms. Best timeout usually is tenth of the endpoints size plus 10-20ms, but minimum 100ms
+ * @param {number} [options.timeout=DEFAULT_TIMEOUT] - ms. Best timeout usually is tenth of the endpoints size plus 10-20ms, but minimum 100ms
  * @param {boolean} [options.returnOnlyExisted=true]
  * @param {AbortSignal} [options.signal]
- * @return {Promise<[string, string|number, boolean][]>}
+ * @return {Promise<TcpExistsResult[]>}
  */
 async function tcpExistsChunk (endpoints, options) {
-  const { timeout = 500, returnOnlyExisted = true, signal } = options || {}
+  const {
+    timeout = DEFAULT_TIMEOUT,
+    returnOnlyExisted = true,
+    signal
+  } = options || {}
 
   const promises = []
 

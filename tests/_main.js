@@ -1,7 +1,14 @@
 import net from 'node:net'
 import assert from 'node:assert'
 
-async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne, cli }) {
+async function _main ({
+  tcpExistsChunk,
+  tcpExistsMany,
+  tcpExistsOne,
+  getEndpoints,
+  DEFAULT_PORTS,
+  cli
+}) {
   const PORT_FROM = 15400
   const PORT_TO = 15500
   const servers = []
@@ -92,7 +99,23 @@ async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne, cli }) {
     assert.deepStrictEqual(
       result,
       gold,
-      '4. tcpExistsMany should be equal to gold'
+      '4.1 tcpExistsMany ARRAY should be equal to gold'
+    )
+
+    const result2 = []
+
+    const gen2 = tcpExistsMany(`localhost:${PORT_FROM - 50}-${PORT_TO + 50}`, {
+      timeout: 100,
+      chunkSize: 32
+    })
+    for await (const chunk of gen2) {
+      Array.prototype.push.apply(result2, chunk)
+    }
+
+    assert.deepStrictEqual(
+      result2,
+      gold,
+      '4.2 tcpExistsMany STRING should be equal to gold'
     )
 
     console.log('tcpExistsMany tests passed')
@@ -156,32 +179,84 @@ async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne, cli }) {
     console.log('tcpExistsMany Abort tests passed')
   }
 
-  async function testCLIParser () {
-    const { DEFAULT_PORTS } = cli
+  async function testGetEndpoints () {
     const DEFAULT_PORTS_LIST = DEFAULT_PORTS.split(',')
 
+    const toString = (iterable) => [...iterable].sort().join(';')
+    const generateGoldEndpoints = (host, ports) =>
+      toString(ports.map((p) => [host, p]))
+    const hosts = ['example.com', 'example2.com']
+    const ports = [8090, 8091, 8092]
+
+    const endpointsOne = getEndpoints([hosts[0]])
+
+    assert.strictEqual(
+      toString(endpointsOne),
+      generateGoldEndpoints(hosts[0], DEFAULT_PORTS_LIST),
+      '7.1 getEndpoints test 1 host with defaults'
+    )
+
+    const endpointsTwo = getEndpoints([
+      hosts[0] + ':' + ports[0],
+      hosts[1] + ':' + ports[0] + '-' + ports[2]
+    ])
+
+    assert.strictEqual(
+      toString(endpointsTwo),
+      toString(
+        [
+          generateGoldEndpoints(hosts[0], [ports[0]]),
+          generateGoldEndpoints(hosts[1], ports)
+        ]
+          .join(';')
+          .split(';')
+          .sort()
+      ),
+      '7.2 getEndpoints test 2 hosts: first with 1 port, second with 3 ports in range'
+    )
+
+    const endpointsComma = getEndpoints(hosts[1] + ':' + ports.join(','))
+
+    assert.strictEqual(
+      toString(endpointsComma),
+      generateGoldEndpoints(hosts[1], ports),
+      '7.3 getEndpoints test 3 ports comma separated'
+    )
+
+    console.log('getEndpoints tests passed')
+  }
+
+  async function testCLIParser () {
     const { help: helpShort } = cli.parseArgs(['-h'])
     const { help: helpLong } = cli.parseArgs(['--help'])
 
-    assert.strictEqual(helpShort, true, '7.1.1 cli parser -h not parsed')
-    assert.strictEqual(helpLong, true, '7.1.2 cli parser --help not parsed')
+    assert.strictEqual(helpShort, true, '10.1.1 cli parser -h not parsed')
+    assert.strictEqual(helpLong, true, '10.1.2 cli parser --help not parsed')
 
     const { verbose: verbShort } = cli.parseArgs(['-v'])
     const { verbose: verbLong } = cli.parseArgs(['--verbose'])
 
-    assert.strictEqual(verbShort, true, '7.2.1 cli parser -v not parsed')
-    assert.strictEqual(verbLong, true, '7.2.2 cli parser --verbose not parsed')
+    assert.strictEqual(verbShort, true, '10.2.1 cli parser -v not parsed')
+    assert.strictEqual(
+      verbLong,
+      true,
+      '10.2.2 cli parser --verbose not parsed'
+    )
 
     const { colorless: clShort } = cli.parseArgs(['-cl'])
     const { colorless: clLong } = cli.parseArgs(['--colorless'])
     const { colorless: clGentle } = cli.parseArgs(['--colourless'])
 
-    assert.strictEqual(clShort, true, '7.3.1 cli parser -cl not parsed')
-    assert.strictEqual(clLong, true, '7.3.2 cli parser --colorless not parsed')
+    assert.strictEqual(clShort, true, '10.3.1 cli parser -cl not parsed')
+    assert.strictEqual(
+      clLong,
+      true,
+      '10.3.2 cli parser --colorless not parsed'
+    )
     assert.strictEqual(
       clGentle,
       true,
-      '7.3.3 cli parser --colourless not parsed'
+      '10.3.3 cli parser --colourless not parsed'
     )
 
     const sizes = [~~(Math.random() * 2000), ~~(Math.random() * 2000)]
@@ -191,11 +266,11 @@ async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne, cli }) {
       sizes[1].toString()
     ])
 
-    assert.strictEqual(sizeShort, sizes[0], '7.4.1 cli parser -s not parsed')
+    assert.strictEqual(sizeShort, sizes[0], '10.4.1 cli parser -s not parsed')
     assert.strictEqual(
       sizeLong,
       sizes[1],
-      '7.4.2 cli parser --size not parsed'
+      '10.4.2 cli parser --size not parsed'
     )
 
     const timeouts = [~~(Math.random() * 2000), ~~(Math.random() * 2000)]
@@ -212,12 +287,12 @@ async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne, cli }) {
     assert.strictEqual(
       timeShort,
       timeouts[0],
-      '7.5.1 cli parser -t not parsed'
+      '10.5.1 cli parser -t not parsed'
     )
     assert.strictEqual(
       timeLong,
       timeouts[1],
-      '7.5.2 cli parser --timeout not parsed'
+      '10.5.2 cli parser --timeout not parsed'
     )
 
     const { delimiter: delimShort } = cli.parseArgs(['-d', delimiters[0]])
@@ -229,55 +304,46 @@ async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne, cli }) {
     assert.strictEqual(
       delimShort,
       delimiters[0],
-      '7.6.1 cli parser -d not parsed'
+      '10.6.1 cli parser -d not parsed'
     )
     assert.strictEqual(
       delimLong,
       delimiters[1],
-      '7.6.2 cli parser --delimiter not parsed'
+      '10.6.2 cli parser --delimiter not parsed'
     )
 
     const toString = (iterable) => [...iterable].sort().join(';')
-    const generateGoldEndpoints = (host, ports) =>
-      toString(ports.map((p) => [host, p]))
     const hosts = ['example.com', 'example2.com']
     const ports = [8090, 8091, 8092]
 
-    const { endpoints: endpointsOne } = cli.parseArgs([hosts[0]])
+    const argOne = [hosts[0]]
+    const { endpoints: endpointsOne } = cli.parseArgs(argOne)
 
     assert.strictEqual(
       toString(endpointsOne),
-      generateGoldEndpoints(hosts[0], DEFAULT_PORTS_LIST),
-      '7.7.1 cli parser test 1 host with defaults'
+      toString(argOne),
+      '10.7.1 cli parser test 1 host'
     )
 
-    const { endpoints: endpointsTwo } = cli.parseArgs([
+    const argTwo = [
       hosts[0] + ':' + ports[0],
       hosts[1] + ':' + ports[0] + '-' + ports[2]
-    ])
+    ]
+    const { endpoints: endpointsTwo } = cli.parseArgs(argTwo)
 
     assert.strictEqual(
       toString(endpointsTwo),
-      toString(
-        [
-          generateGoldEndpoints(hosts[0], [ports[0]]),
-          generateGoldEndpoints(hosts[1], ports)
-        ]
-          .join(';')
-          .split(';')
-          .sort()
-      ),
-      '7.7.2 cli parser test 2 hosts: first with 1 port, second with 3 ports in range'
+      toString(argTwo),
+      '10.7.2 cli parser test 2 hosts: first with 1 port, second with 3 ports in range'
     )
 
-    const { endpoints: endpointsComma } = cli.parseArgs([
-      hosts[1] + ':' + ports.join(',')
-    ])
+    const argThree = [hosts[1] + ':' + ports.join(',')]
+    const { endpoints: endpointsComma } = cli.parseArgs(argThree)
 
     assert.strictEqual(
       toString(endpointsComma),
-      generateGoldEndpoints(hosts[1], ports),
-      '7.7.3 cli parser test 3 ports comma separated'
+      toString(argThree),
+      '10.7.3 cli parser test 3 ports comma separated'
     )
 
     console.log('cli.parser tests passed')
@@ -296,13 +362,13 @@ async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne, cli }) {
     assert.strictEqual(
       positiveResult,
       `${host}:${port}\ton`,
-      '8.1 cli formatter test positive'
+      '11.1 cli formatter test positive'
     )
 
     assert.strictEqual(
       negativeResult,
       `${host}:${port}\toff;\n`,
-      '8.2 cli formatter test negative'
+      '11.2 cli formatter test negative'
     )
 
     console.log('cli.formatter tests passed')
@@ -328,7 +394,7 @@ async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne, cli }) {
       assert.strictEqual(
         data[0],
         `localhost:${PORT_FROM}\ton\n`,
-        '9.1 cli cmd only positive with \\n not correct'
+        '12.1 cli cmd only positive with \\n not correct'
       )
 
       data.length = 0
@@ -345,7 +411,7 @@ async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne, cli }) {
       assert.strictEqual(
         data[0],
         `localhost:${PORT_FROM - 1}\toff; `,
-        '9.2 cli cmd all with delimiter="; " not correct'
+        '12.2 cli cmd all with delimiter="; " not correct'
       )
     } finally {
       process.stdout.write = process.stdout.originWrite
@@ -365,6 +431,7 @@ async function _main ({ tcpExistsChunk, tcpExistsMany, tcpExistsOne, cli }) {
 
   await testOne()
   await testChunk()
+  await testGetEndpoints()
   await testMany()
   await testOneAbort()
   await testManyAbort()
