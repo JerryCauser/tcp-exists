@@ -1,5 +1,5 @@
 import tcpExistsOne from './one.js'
-import { DEFAULT_TIMEOUT } from './stuff.js'
+import { DEFAULT_TIMEOUT } from './utilities.js'
 
 /**
  * @param {string} host
@@ -17,7 +17,8 @@ async function processOne (host, port, timeout, signal) {
 /**
  * @param {Iterable<TcpExistsEndpoint>} endpoints
  * @param {object} [options]
- * @param {number} [options.timeout=DEFAULT_TIMEOUT] - ms. Best timeout usually is tenth of the endpoints size plus 10-20ms, but minimum 100ms
+ * @param {number} [options.timeout=DEFAULT_TIMEOUT] - ms.
+ *    How to pick best timeout: https://github.com/JerryCauser/tcp-exists#best-timeout-and-chunksize
  * @param {boolean} [options.returnOnlyExisted=true]
  * @param {AbortSignal} [options.signal]
  * @return {Promise<TcpExistsResult[]>}

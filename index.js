@@ -6,7 +6,7 @@ import {
   DEFAULT_CHUNK_SIZE,
   DEFAULT_TIMEOUT,
   DEFAULT_PORTS
-} from './src/stuff.js'
+} from './src/utilities.js'
 
 export {
   tcpExistsOne as default,

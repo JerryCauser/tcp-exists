@@ -1,5 +1,5 @@
 import net from 'node:net'
-import { DEFAULT_TIMEOUT } from './stuff.js'
+import { DEFAULT_TIMEOUT } from './utilities.js'
 
 /**
  * @param {function} resolve

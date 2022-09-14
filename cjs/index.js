@@ -39,7 +39,7 @@ module.exports = __toCommonJS(tcp_exists_exports);
 // src/one.js
 var import_node_net = __toESM(require("node:net"), 1);
 
-// src/stuff.js
+// src/utilities.js
 var DEFAULT_CHUNK_SIZE = 2300;
 var DEFAULT_TIMEOUT = 250;
 var DEFAULT_PORTS_DICT = {

@@ -6,7 +6,7 @@ import {
   DEFAULT_PORTS,
   DEFAULT_TIMEOUT,
   DEFAULT_CHUNK_SIZE
-} from './stuff.js'
+} from './utilities.js'
 import tcpExistsMany from './many.js'
 
 const packageJSON = JSON.parse(

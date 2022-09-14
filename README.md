@@ -71,7 +71,7 @@ It is an async function to check multiple endpoints. If size of endpoints you wa
 #### Arguments:
 - `endpoints` `<[string, string|number][]>` - array of `[host, port]`
 - `options` `<object>` - optional
-    - `timeout` `<number>` - optional number of `ms` to execute on chunk. Best timeout usually is ninth of the endpoints size, but minimum 100ms **Default:** [`DEFAULT_TIMEOUT`][timeout]
+    - `timeout` `<number>` - optional number of `ms` to execute on chunk. [How to pick the best timeout][notes-best] **Default:** [`DEFAULT_TIMEOUT`][timeout]
     - `returnOnlyExisted` `<boolean>` - optional flag to exclude all non-existed results. **Default:** `true`
     - `signal` `<AbortSignal>` - optional. An AbortSignal that may be used to close a sockets and return result ASAP.
 
@@ -108,7 +108,7 @@ Useful to use with large amount of endpoints.
 - `endpoints` `<[string, string|number][]|string>` - array of `[host, port]` or string in format `host:port,port2; host2; host3:port0-port9`
 - `options` `<object>` - optional
   - `chunkSize` `<number>` - optional chunk size of endpoints to process at once. **Default:** [`DEFAULT_CHUNK_SIZE`][chunk-size]
-  - `timeout` `<number>` - optional number of `ms` to execute on chunk. Best timeout usually is tenth of the endpoints size plus 10-20ms, but minimum 100ms **Default:** [`DEFAULT_TIMEOUT`][timeout]
+  - `timeout` `<number>` - optional number of `ms` to execute on chunk. [How to pick the best timeout][notes-best] **Default:** [`DEFAULT_TIMEOUT`][timeout]
   - `returnOnlyExisted` `<boolean>` - optional flag to exclude all non-existed results. **Default:** `true`
   - `signal` `<AbortSignal>` - optional. An AbortSignal that may be used to close a sockets, stop iteration and return last chunk result ASAP.
 
@@ -165,6 +165,20 @@ for (const [host, port] of getEndpoints('localhost:1-65535')) {
 - `<string>` : `'21,22,23,25,53,80,110,111,135,139,143,443,445,993,995,1723,3306,3389,5900,8080'`
 
 
+---
+
+### Notes
+
+#### Best timeout and chunkSize
+The best timeout usually is the ninth of the endpoint's size, but at least `100ms`.
+
+For example, better to pick timeout as `220ms` for a chunk of `2000` endpoints.
+
+Also, you can take into account latency to the endpoint.
+If your endpoint has latency `300ms` then better to pick timeout as `350ms` and chunkSize as `3100`.
+
+---
+
 ## P.S.
 
 There is better alternative of port scanner to use in shell written in rust [RustScan](https://github.com/RustScan/RustScan) (scans 65536 ports in **3s**)
@@ -174,3 +188,4 @@ License ([MIT](LICENSE))
 [chunk-size]: #DEFAULT_CHUNK_SIZE
 [timeout]: #DEFAULT_TIMEOUT
 [ports]: #DEFAULT_PORTS
+[notes-best]: #best-timeout-and-chunksize

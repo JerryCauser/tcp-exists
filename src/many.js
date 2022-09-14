@@ -4,14 +4,15 @@ import {
   DEFAULT_CHUNK_SIZE,
   DEFAULT_TIMEOUT,
   DEFAULT_PORTS
-} from './stuff.js'
+} from './utilities.js'
 
 /**
  * Attention: passed list will be empty after execution
  * @param {[string, string|number][]|string} endpoints
  * @param {object} [options]
  * @param {number} [options.chunkSize=1400]
- * @param {number} [options.timeout=160] - ms. Best timeout usually is tenth of the chunkSize plus 10-20ms, but minimum 100ms
+ * @param {number} [options.timeout=160] - ms.
+ *    How to pick best timeout: https://github.com/JerryCauser/tcp-exists#best-timeout-and-chunksize
  * @param {boolean} [options.returnOnlyExisted=true]
  * @param {AbortSignal} [options.signal]
  * @return {AsyncIterable<[string, string|number, boolean][]>}
