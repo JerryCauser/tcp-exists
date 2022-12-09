@@ -1,9 +1,5 @@
 name: "CodeQL"
 
-paths-ignore: 
-  - 'tests'
-  - 'cjs/test.js'
-
 on:
   push:
     branches: [ "master" ]
