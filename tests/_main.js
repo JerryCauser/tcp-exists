@@ -1,5 +1,6 @@
 import net from 'node:net'
 import assert from 'node:assert'
+import util from 'node:util';
 
 async function _main ({
   tcpExistsChunk,
@@ -14,7 +15,7 @@ async function _main ({
   const servers = []
 
   const serverListener = (socket) => {
-    socket.on('error', (e) => console.error(e))
+    socket.on('error', (e) => console.error(util.format(e)))
     socket.end()
   }
 
