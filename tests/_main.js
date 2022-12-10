@@ -1,6 +1,6 @@
 import net from 'node:net'
 import assert from 'node:assert'
-import util from 'node:util';
+import util from 'node:util'
 
 async function _main ({
   tcpExistsChunk,
