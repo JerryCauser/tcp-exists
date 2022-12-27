@@ -157,16 +157,18 @@ export async function cmd (args, ac) {
 }
 
 /**
- * @param {string[]} args
- * @return {ParsedArguments}
+ * @param {string[]} rawArgs
+ * @returns {string[]}
  */
-export function parseArgs (args) {
-  args = args
+function sanitizeArgs (rawArgs) {
+  return rawArgs
     .map((arg) => arg.toString().split('='))
     .flat(1)
     .filter(Boolean)
+}
 
-  const options = {
+function getDefaultOptions () {
+  return {
     help: false,
     colorless: false,
     verbose: false,
@@ -175,6 +177,16 @@ export function parseArgs (args) {
     timeout: DEFAULT_TIMEOUT,
     endpoints: []
   }
+}
+
+/**
+ * @param {string[]} rawArgs
+ * @return {ParsedArguments}
+ */
+export function parseArgs (rawArgs) {
+  const args = sanitizeArgs(rawArgs)
+
+  const options = getDefaultOptions()
 
   for (let i = 0; i < args.length; ++i) {
     const arg = args[i]
@@ -184,23 +196,10 @@ export function parseArgs (args) {
 
       break
     } else if (arg === '-d' || arg === '--delimiter') {
-      options.delimiter = args[++i] ?? ''
-
-      if (/\\/.test(options.delimiter)) {
-        options.delimiter = options.delimiter
-          .replace(/\\t/gm, '\t')
-          .replace(/\\v/gm, '\v')
-          .replace(/\\f/gm, '\f')
-          .replace(/\\n/gm, '\n')
-          .replace(/\\r/gm, '\r')
-      }
+      options.delimiter = parseDelimiter(args[++i])
 
       continue
-    } else if (
-      arg === '-cl' ||
-      arg === '--colourless' ||
-      arg === '--colorless'
-    ) {
+    } else if (['-cl', '--colourless', '--colorless'].includes(arg)) {
       options.colorless = true
 
       continue
@@ -226,6 +225,25 @@ export function parseArgs (args) {
   }
 
   return options
+}
+
+/**
+ * @param {string} delimiter
+ * @returns {string}
+ */
+function parseDelimiter (delimiter) {
+  delimiter ??= ''
+
+  if (/\\/.test(delimiter)) {
+    delimiter = delimiter
+      .replace(/\\t/gm, '\t')
+      .replace(/\\v/gm, '\v')
+      .replace(/\\f/gm, '\f')
+      .replace(/\\n/gm, '\n')
+      .replace(/\\r/gm, '\r')
+  }
+
+  return delimiter
 }
 
 /**
