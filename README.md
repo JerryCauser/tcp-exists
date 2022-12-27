@@ -1,7 +1,7 @@
 # tcp-exists
 [![npm](https://img.shields.io/npm/v/tcp-exists)](https://www.npmjs.com/package/tcp-exists)
-[![tests](https://img.shields.io/github/workflow/status/JerryCauser/tcp-exists/tests?label=tests&logo=github)](https://github.com/JerryCauser/tcp-exists/actions/workflows/tests.yml)
-[![LGTM Grade](https://img.shields.io/lgtm/grade/javascript/github/JerryCauser/tcp-exists)](https://lgtm.com/projects/g/JerryCauser/tcp-exists)
+[![tests](https://github.com/JerryCauser/tcp-exists/actions/workflows/tests.yml/badge.svg)](https://github.com/JerryCauser/tcp-exists/actions/workflows/tests.yml)
+[![CodeFactor Grade](https://img.shields.io/codefactor/grade/github/JerryCauser/tcp-exists/master)](https://www.codefactor.io/repository/github/jerrycauser/tcp-exists)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 [![node-current](https://img.shields.io/node/v/tcp-exists)](https://nodejs.org)
 [![GitHub](https://img.shields.io/github/license/JerryCauser/tcp-exists)](https://github.com/JerryCauser/tcp-exists/blob/master/LICENSE)
