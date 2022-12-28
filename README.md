@@ -1,6 +1,7 @@
 # tcp-exists
 [![npm](https://img.shields.io/npm/v/tcp-exists)](https://www.npmjs.com/package/tcp-exists)
 [![tests](https://github.com/JerryCauser/tcp-exists/actions/workflows/tests.yml/badge.svg)](https://github.com/JerryCauser/tcp-exists/actions/workflows/tests.yml)
+[![CodeQL](https://github.com/JerryCauser/tcp-exists/actions/workflows/codeql.yml/badge.svg)](https://github.com/JerryCauser/tcp-exists/actions/workflows/codeql.yml)
 [![CodeFactor Grade](https://img.shields.io/codefactor/grade/github/JerryCauser/tcp-exists/master)](https://www.codefactor.io/repository/github/jerrycauser/tcp-exists)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 [![node-current](https://img.shields.io/node/v/tcp-exists)](https://nodejs.org)
