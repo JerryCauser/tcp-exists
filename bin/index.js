@@ -7,8 +7,8 @@ const ac = new AbortController()
 events.setMaxListeners(0, ac.signal)
 
 cmd(process.argv.slice(2), ac)
-  .then(() => {
-    process.exit(0)
+  .then((exists) => {
+    process.exit(exists === true ? 0 : 1)
   })
   .catch((error) => {
     console.error(error)

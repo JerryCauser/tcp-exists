@@ -151,14 +151,17 @@ export async function cmd (args, ac) {
     signal: ac?.signal
   }
 
+  let hasResult = false
   for await (const chunkResult of tcpExistsMany(endpoints.join(';'), options)) {
     for (const oneResult of chunkResult) {
       if (!silent) {
         process.stdout.write(formatOneResult(oneResult, delimiter, colorless))
       }
+      hasResult = true
     }
   }
 
+  return hasResult
 }
 
 /**
