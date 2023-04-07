@@ -30,6 +30,7 @@ const getHelpText = ({
   const o = {
     v: red('-v'),
     verbose: red('--verbose'),
+    silent: red('--silent'),
     cl: red('-cl'),
     colourless: red('--colourless'),
     colorless: red('--colorless'),
@@ -95,6 +96,9 @@ ${red('Arguments')}
     By default, ${name} will print only positive results.
     If ${o.v} is passed then it will print all results.
     
+  ${o.silent}
+    Suppress output, whether positive or negative.
+    
   ${o.cl}, ${o.colourless}, ${o.colorless}
     By default, ${name} uses colored output in TTY mode.
     You can disable it by by passing this argument.
@@ -131,7 +135,7 @@ ${red('License')} ${license}
  */
 export async function cmd (args, ac) {
   const parsed = parseArgs(args)
-  const { help, delimiter, timeout, chunkSize, verbose, colorless, endpoints } =
+  const { help, delimiter, timeout, chunkSize, verbose, silent, colorless, endpoints } =
     parsed
 
   if (help || (process.stdout.isTTY && endpoints.length === 0)) {
@@ -149,11 +153,12 @@ export async function cmd (args, ac) {
 
   for await (const chunkResult of tcpExistsMany(endpoints.join(';'), options)) {
     for (const oneResult of chunkResult) {
-      process.stdout.write(formatOneResult(oneResult, delimiter, colorless))
+      if (!silent) {
+        process.stdout.write(formatOneResult(oneResult, delimiter, colorless))
+      }
     }
   }
 
-  process.stdout.write('\n')
 }
 
 /**
@@ -172,6 +177,7 @@ function getDefaultOptions () {
     help: false,
     colorless: false,
     verbose: false,
+    silent: false,
     delimiter: DEFAULT_DELIMITER,
     chunkSize: DEFAULT_CHUNK_SIZE,
     timeout: DEFAULT_TIMEOUT,
@@ -205,6 +211,10 @@ export function parseArgs (rawArgs) {
       continue
     } else if (arg === '-v' || arg === '--verbose') {
       options.verbose = true
+
+      continue
+    } else if (arg === '--silent') {
+      options.silent = true
 
       continue
     } else if (arg === '-t' || arg === '--timeout') {
