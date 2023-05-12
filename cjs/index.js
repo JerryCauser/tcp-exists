@@ -22,9 +22,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// index.js
-var tcp_exists_exports = {};
-__export(tcp_exists_exports, {
+// src/index.js
+var src_exports = {};
+__export(src_exports, {
   DEFAULT_CHUNK_SIZE: () => DEFAULT_CHUNK_SIZE,
   DEFAULT_PORTS: () => DEFAULT_PORTS,
   DEFAULT_TIMEOUT: () => DEFAULT_TIMEOUT,
@@ -34,7 +34,7 @@ __export(tcp_exists_exports, {
   tcpExistsMany: () => many_default,
   tcpExistsOne: () => one_default
 });
-module.exports = __toCommonJS(tcp_exists_exports);
+module.exports = __toCommonJS(src_exports);
 
 // src/one.js
 var import_node_net = __toESM(require("node:net"), 1);
