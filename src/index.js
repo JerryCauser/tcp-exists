@@ -1,12 +1,12 @@
-import tcpExistsOne from './src/one.js'
-import tcpExistsChunk from './src/chunk.js'
-import tcpExistsMany from './src/many.js'
+import tcpExistsOne from './one.js'
+import tcpExistsChunk from './chunk.js'
+import tcpExistsMany from './many.js'
 import {
   getEndpoints,
   DEFAULT_CHUNK_SIZE,
   DEFAULT_TIMEOUT,
   DEFAULT_PORTS
-} from './src/utilities.js'
+} from './utilities.js'
 
 export {
   tcpExistsOne as default,

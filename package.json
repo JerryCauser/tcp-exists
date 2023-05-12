@@ -7,23 +7,23 @@
     "tcp-exists": "./bin/index.js"
   },
   "main": "cjs/index.js",
-  "module": "index.js",
+  "module": "src/index.js",
   "exports": {
     ".": {
       "require": "./cjs/index.js",
-      "default": "./index.js"
+      "default": "./src/index.js"
     }
   },
   "engines": {
     "node": ">=16.0.0"
   },
   "scripts": {
-    "build": "esbuild index.js --bundle --platform=node --format=cjs --target=node16 --outfile='./cjs/index.js'",
+    "build": "esbuild src/index.js --bundle --platform=node --format=cjs --target=node16 --outfile='./cjs/index.js'",
     "release:patch": "standard-version --release-as patch",
     "release:minor": "standard-version --release-as minor",
     "release:major": "standard-version --release-as major",
     "push-release": "git push --follow-tags origin master",
-    "prettify": "prettier --write -u './*.js' './**/*.js' !./cjs/index.js",
+    "prettify": "prettier --write -u './**/*.js' !./cjs/index.js",
     "test": "standard && node tests/index.js && node cjs/test.js",
     "fix": "npm run prettify && standard --fix",
     "prepare": "husky install"
@@ -75,7 +75,7 @@
     "/cjs/package.json",
     "/src",
     "/types",
-    "index.js",
+    "src/index.js",
     "LICENSE",
     "CHANGELOG.md",
     "README.md"

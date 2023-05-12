@@ -4,7 +4,7 @@ import {
   tcpExistsMany,
   getEndpoints,
   DEFAULT_PORTS
-} from '../index.js'
+} from 'src/index.js'
 import * as cli from '../src/cli.js'
 import _main from './_main.js'
 

@@ -1,12 +1,12 @@
-import tcpExistsOne from './src/one'
-import tcpExistsChunk from './src/chunk'
-import tcpExistsMany from './src/many'
+import tcpExistsOne from './one'
+import tcpExistsChunk from './chunk'
+import tcpExistsMany from './many'
 import {
   getEndpoints,
   DEFAULT_CHUNK_SIZE,
   DEFAULT_TIMEOUT,
   DEFAULT_PORTS
-} from './src/utilities'
+} from './utilities'
 
 export {
   tcpExistsOne as default,
