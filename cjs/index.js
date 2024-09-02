@@ -17,6 +17,10 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
@@ -77,15 +81,13 @@ function* getEndpoints(argument, defaultPorts = DEFAULT_PORTS) {
     if (!Array.isArray(ports) || ports.length === 0) {
       ports = defaultPortList;
     }
-    if (!host || ports.length === 0)
-      return;
+    if (!host || ports.length === 0) return;
     for (const portChunk of ports) {
       if (portChunk.includes("-")) {
         let [fromPort, toPort] = portChunk.split("-");
         fromPort = Math.max(1, Math.abs(parseInt(fromPort, 10)));
         toPort = Math.min(65535, Math.abs(parseInt(toPort, 10)));
-        if (isNaN(fromPort) || isNaN(toPort))
-          continue;
+        if (isNaN(fromPort) || isNaN(toPort)) continue;
         if (fromPort > toPort) {
           [fromPort, toPort] = [toPort, fromPort];
         }
@@ -101,8 +103,7 @@ function* getEndpoints(argument, defaultPorts = DEFAULT_PORTS) {
 
 // src/one.js
 var handleFail = (resolve, socket) => {
-  if (socket && !socket.destroyed)
-    socket.destroy();
+  if (socket && !socket.destroyed) socket.destroy();
   resolve(false);
 };
 var handleSuccess = (resolve, socket) => {
@@ -162,8 +163,7 @@ async function* tcpExistsMany(endpoints, options) {
     const chunk = [];
     for (const item of getEndpoints(endpoints, DEFAULT_PORTS)) {
       if (chunk.push(item) === DEFAULT_CHUNK_SIZE) {
-        if ((signal == null ? void 0 : signal.aborted) === true)
-          return;
+        if ((signal == null ? void 0 : signal.aborted) === true) return;
         yield await chunk_default(chunk, {
           timeout,
           returnOnlyExisted,
@@ -172,8 +172,7 @@ async function* tcpExistsMany(endpoints, options) {
         chunk.length = 0;
       }
     }
-    if ((signal == null ? void 0 : signal.aborted) === true)
-      return;
+    if ((signal == null ? void 0 : signal.aborted) === true) return;
     yield await chunk_default(chunk, { timeout, returnOnlyExisted, signal });
     chunk.length = 0;
   }

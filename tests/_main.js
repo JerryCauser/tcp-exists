@@ -1,5 +1,8 @@
 import net from 'node:net'
 import assert from 'node:assert'
+import events from 'node:events'
+
+events.setMaxListeners(30)
 
 async function _main ({
   tcpExistsChunk,
