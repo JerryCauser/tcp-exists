@@ -4,34 +4,38 @@
   "description": "Small and fast functions to check if some tcp endpoint exists",
   "type": "module",
   "bin": {
-    "tcp-exists": "./bin/index.js"
+    "tcp-exists": "./dist/bin.js"
   },
-  "main": "cjs/index.js",
-  "module": "index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./types/index.d.ts",
-      "require": "./cjs/index.js",
-      "default": "./index.js"
-    }
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=22.0.0"
   },
   "scripts": {
-    "build": "esbuild index.js --bundle --platform=node --format=cjs --target=node16 --outfile='./cjs/index.js'",
-    "lint": "eslint .",
+    "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clean && tsc -p tsconfig.json && esbuild src/index.ts --bundle --platform=node --format=cjs --target=node22 --outfile=dist/index.cjs",
+    "lint": "tsc -p tsconfig.json --noEmit && eslint .",
     "prettify": "prettier --write -u './**/*.{js,cjs,mjs,ts,cts,mts}'",
     "fix": "npm run prettify && eslint --fix .",
-    "test:types": "tsc -p tests/types",
-    "test:run": "node tests/index.js && node cjs/test.js",
-    "test": "npm run lint && npm run test:types && npm run test:run",
+    "test:types": "tsc -p tests",
+    "test:unit": "vitest run --project unit",
+    "test:bench": "npm run build && vitest run --project bench",
+    "test": "npm run build && npm run lint && npm run test:types && vitest run --project unit --project package",
     "release:patch": "commit-and-tag-version --release-as patch",
     "release:minor": "commit-and-tag-version --release-as minor",
     "release:major": "commit-and-tag-version --release-as major",
     "push-release": "git push --follow-tags origin master",
-    "prepare": "husky",
-    "bench": "node bench/index.js"
+    "prepack": "npm run build",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -62,21 +66,18 @@
     "husky": "^9.1.7",
     "neostandard": "^0.14.0",
     "prettier": "^3.9.9",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "vitest": "^5.0.3"
   },
-  "types": "./types/index.d.ts",
   "files": [
-    "/bin/index.js",
-    "/cjs/index.js",
-    "/cjs/package.json",
-    "/src",
-    "/types",
-    "index.js",
+    "dist",
+    "src",
     "LICENSE",
     "CHANGELOG.md",
     "README.md"
   ],
   "allowScripts": {
-    "esbuild@0.28.2": true
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true
   }
 }

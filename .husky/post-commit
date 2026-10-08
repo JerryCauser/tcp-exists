@@ -1,6 +1,0 @@
-npm run build
-
-if ! git diff --quiet -- cjs/index.js; then
-  git add cjs/index.js
-  git commit -m "build: build cjs"
-fi
