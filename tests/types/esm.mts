@@ -8,6 +8,8 @@ import tcpExists, {
   DEFAULT_PORTS
 } from 'tcp-exists'
 
+type Result = [string, string | number, boolean]
+
 export const one: Promise<boolean> = tcpExistsOne(
   'localhost',
   80,
@@ -15,16 +17,13 @@ export const one: Promise<boolean> = tcpExistsOne(
 )
 export const def: Promise<boolean> = tcpExists('localhost', '80')
 
-export const chunk: Promise<[string, string | number, boolean][]> =
-  tcpExistsChunk([['localhost', 80]], {
-    timeout: 100,
-    returnOnlyExisted: false
-  })
+export const chunk: Promise<Result[]> = tcpExistsChunk([['localhost', 80]], {
+  timeout: 100,
+  returnOnlyExisted: false
+})
 
-export async function many (): Promise<
-  Array<[string, string | number, boolean]>
-> {
-  const result: Array<[string, string | number, boolean]> = []
+export async function many (): Promise<Result[]> {
+  const result: Result[] = []
 
   for await (const results of tcpExistsMany('localhost:1-10', {
     chunkSize: DEFAULT_CHUNK_SIZE
@@ -40,7 +39,25 @@ export async function many (): Promise<
   return result
 }
 
-export const endpoints: [string, string | number][] = [
+export async function manyFromIterables (): Promise<Result[]> {
+  const result: Result[] = []
+
+  async function * source (): AsyncGenerator<[string, number]> {
+    yield ['localhost', 80]
+  }
+
+  for await (const chunk of tcpExistsMany(getEndpoints('localhost:80'))) {
+    result.push(...chunk)
+  }
+  for await (const chunk of tcpExistsMany(new Set<[string, number]>())) {
+    result.push(...chunk)
+  }
+  for await (const chunk of tcpExistsMany(source())) result.push(...chunk)
+
+  return result
+}
+
+export const endpoints: Array<[string, string | number]> = [
   ...getEndpoints('localhost')
 ]
 export const ports: string = DEFAULT_PORTS

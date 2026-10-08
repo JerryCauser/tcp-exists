@@ -41,46 +41,143 @@ export const red = (str) =>
 export const green = (str) =>
   process.stdout.isTTY ? `\x1b[32m${str}\x1b[0m` : str
 
+export const MIN_PORT = 1
+export const MAX_PORT = 65535
+
 /**
+ * @param {string} message
+ * @return {RangeError}
+ */
+const invalidEndpointError = (message) => {
+  const error = new RangeError(message)
+  error.code = 'ERR_INVALID_ENDPOINT'
+
+  return error
+}
+
+/**
+ * @param {string} value
+ * @param {string} item - whole endpoint for error message
+ * @return {number}
+ */
+function parsePort (value, item) {
+  const port = Number(value)
+
+  if (!/^\d+$/.test(value) || port < MIN_PORT || port > MAX_PORT) {
+    throw invalidEndpointError(
+      `Invalid port "${value}" in "${item}". Port must be an integer from ${MIN_PORT} to ${MAX_PORT}`
+    )
+  }
+
+  return port
+}
+
+/**
+ * Splits endpoint into host and ports parts.
+ * Supports IPv6: `[::1]:80,443` or bare `::1` (default ports)
+ * @param {string} item
+ * @return {[host:string, ports:string]}
+ */
+function splitEndpoint (item) {
+  if (item.startsWith('[')) {
+    const end = item.indexOf(']')
+    const rest = item.slice(end + 1)
+
+    if (end === -1 || (rest !== '' && !rest.startsWith(':'))) {
+      throw invalidEndpointError(
+        `Invalid endpoint "${item}". Expected format for IPv6 is [host]:ports`
+      )
+    }
+
+    return [item.slice(1, end), rest.slice(1)]
+  }
+
+  const firstColon = item.indexOf(':')
+
+  if (firstColon === -1 || item.indexOf(':', firstColon + 1) !== -1) {
+    return [item, '']
+  }
+
+  return [item.slice(0, firstColon), item.slice(firstColon + 1)]
+}
+
+/**
+ * @param {string} portsString - like `22,80,8000-8999`
+ * @param {string} item - whole endpoint for error message
+ * @return {(string|[from:number, to:number])[]} single ports are kept as strings
+ */
+function parsePorts (portsString, item) {
+  const result = []
+
+  for (const portChunk of portsString.split(',')) {
+    const chunk = portChunk.trim()
+
+    if (chunk === '') continue
+
+    if (chunk.includes('-')) {
+      const [from, to, ...rest] = chunk.split('-').map((p) => p.trim())
+
+      if (rest.length > 0) {
+        throw invalidEndpointError(`Invalid port range "${chunk}" in "${item}"`)
+      }
+
+      const fromPort = parsePort(from, item)
+      const toPort = parsePort(to, item)
+
+      result.push(fromPort > toPort ? [toPort, fromPort] : [fromPort, toPort])
+    } else {
+      parsePort(chunk, item)
+      result.push(chunk)
+    }
+  }
+
+  return result
+}
+
+/**
+ * Parses and validates endpoints. Throws RangeError with code `ERR_INVALID_ENDPOINT`
+ * on first `next()` call if some port or endpoint is invalid.
  * @param {string|string[]} argument
  * @param {string} [defaultPorts]
- * @return {Iterator<[host:string, port:string|number]> | void}
+ * @return {Generator<[host:string, port:string|number]>}
  */
 export function * getEndpoints (argument, defaultPorts = DEFAULT_PORTS) {
-  const defaultPortList = defaultPorts?.split(',') || []
-
   if (typeof argument === 'string') {
     argument = argument.trim().split(/[;\s]+/)
   }
 
-  for (const item of argument) {
-    let [host, ports] = item.split(':')
-    host = host?.trim().toLowerCase()
-    ports = ports?.trim().toLowerCase().split(',').filter(Boolean)
+  const parsed = []
+  let defaultPortList
 
-    if (!Array.isArray(ports) || ports.length === 0) {
+  for (const rawItem of argument) {
+    const item = String(rawItem).trim().toLowerCase()
+
+    if (item === '') continue
+
+    const [host, portsString] = splitEndpoint(item)
+
+    if (host === '') continue
+
+    let ports = parsePorts(portsString, item)
+
+    if (ports.length === 0) {
+      defaultPortList ??= parsePorts(defaultPorts || '', 'DEFAULT_PORTS')
       ports = defaultPortList
     }
 
-    if (!host || ports.length === 0) continue
+    parsed.push([host, ports])
+  }
 
-    for (const portChunk of ports) {
-      if (portChunk.includes('-')) {
-        let [fromPort, toPort] = portChunk.split('-')
-        fromPort = Math.max(1, Math.abs(parseInt(fromPort, 10)))
-        toPort = Math.min(65535, Math.abs(parseInt(toPort, 10)))
+  for (const [host, ports] of parsed) {
+    for (const port of ports) {
+      if (typeof port === 'string') {
+        yield [host, port]
 
-        if (isNaN(fromPort) || isNaN(toPort)) continue
+        continue
+      }
 
-        if (fromPort > toPort) {
-          ;[fromPort, toPort] = [toPort, fromPort]
-        }
-
-        for (let p = fromPort; p <= toPort; ++p) {
-          yield [host, p]
-        }
-      } else {
-        yield [host, portChunk]
+      for (let p = port[0]; p <= port[1]; ++p) {
+        yield [host, p]
       }
     }
   }

@@ -11,7 +11,8 @@ Check if some tcp endpoint (or many) exists. Can be used as a port scanner
 
 - Zero-dependency
 - Small — just 4 functions
-- Fast — scans `65536` endpoints in `~9sec` (via tcpExistsMany, when host is an IP or `localhost`)
+- Fast — scans `65536` endpoints in `~9sec` (via tcpExistsMany)
+- Supports IPv4, IPv6 and hostnames (every hostname is resolved only once per scan)
 - ESM and CJS 
 
 ## CLI Install
@@ -33,6 +34,9 @@ tcp-exists example.com:22,80,443,8000-10000,27017 # example how to provide list/
 
 ```bash
 tcp-exists example.com:22 another.org:1-65535 # example how to scan several endpoints 
+```
+```bash
+tcp-exists [::1]:22,80 # IPv6 address must be wrapped in brackets if ports are provided
 ```
 
 ## Install
@@ -67,10 +71,12 @@ console.log(exist) // true
 
 
 ### tcpExistsChunk(endpoints[, options])
+> **Deprecated:** will be removed in `v2.0.0`. Use [`tcpExistsMany`](#tcpexistsmanyendpoints-options) instead.
+
 It is an async function to check multiple endpoints. If size of endpoints you want to check more than `4096` then recommended to use generator function `tcpExistsMany` or increase `timeout`.
 
 #### Arguments:
-- `endpoints` `<[string, string|number][]>` - array of `[host, port]`
+- `endpoints` `<Iterable<[string, string|number]>>` - array (or any iterable) of `[host, port]`
 - `options` `<object>` - optional
     - `timeout` `<number>` - optional connection timeout in `ms` for each endpoint. [How to pick the best timeout][notes-best] **Default:** [`DEFAULT_TIMEOUT`][timeout]
     - `returnOnlyExisted` `<boolean>` - optional flag to exclude all non-existed results. **Default:** `true`
@@ -106,8 +112,7 @@ It is an async generator. So you can use it with `for await (... of ...)` or as 
 Useful to use with large amount of endpoints.
 
 #### Arguments:
-- `endpoints` `<[string, string|number][]|string>` - array of `[host, port]` or string in format `host:port,port2; host2; host3:port0-port9`.
-  **Attention:** a passed array is emptied during iteration — pass a copy (`[...endpoints]`) if you need it later.
+- `endpoints` `<string|Iterable<[string, string|number]>|AsyncIterable<[string, string|number]>>` - string in format `host:port,port2; host2; host3:port0-port9; [::1]:port`, or array / any (async) iterable of `[host, port]` (e.g. result of [`getEndpoints`](#getendpointsargument-defaultports)). Passed array is not modified.
 - `options` `<object>` - optional
   - `chunkSize` `<number>` - optional chunk size of endpoints to process at once. **Default:** [`DEFAULT_CHUNK_SIZE`][chunk-size]
   - `timeout` `<number>` - optional connection timeout in `ms` for each endpoint. [How to pick the best timeout][notes-best] **Default:** [`DEFAULT_TIMEOUT`][timeout]
@@ -116,6 +121,10 @@ Useful to use with large amount of endpoints.
 
 #### Returns:
 - `<AsyncIterable<[host:string, port:string|number, exist:boolean][]>>` - generator will yield `array` of `[host, port, existed]`
+
+#### Throws:
+- `TypeError` - if `endpoints` is not a string or an iterable
+- `RangeError` with `code: 'ERR_INVALID_ENDPOINT'` - if some port or endpoint in a string is invalid. It is thrown before any connection is opened
 
 
 #### Usage
@@ -137,11 +146,16 @@ console.log(result)
 It is a generator. So you can use it with `for (... of ...)` or destruct into array `[...getEndpoints('example.com:1-65535')]`
 
 #### Arguments:
-- `argument` `<string|string[]>` - string in format `host:port,port2; host2; host3:port0-port9` or array like this `['host1', 'host2:port1,port2', 'host3:port0-port9']`
+- `argument` `<string|Iterable<string>>` - string in format `host:port,port2; host2; host3:port0-port9` or array like this `['host1', 'host2:port1,port2', 'host3:port0-port9', '[::1]:port']`
+  - IPv6 address must be wrapped in brackets if ports are provided: `[::1]:22,80`. Bare `::1` means default ports
+  - Port must be an integer from `1` to `65535`
 - `defaultPorts` `<string>` - optional. Comma separated string of ports. **Default:** [`DEFAULT_PORTS`][ports] 
 
 #### Returns:
 - `<Generator<[string, string|number]>>` - generator will yield `array` of `[host, port]`
+
+#### Throws:
+- `RangeError` with `code: 'ERR_INVALID_ENDPOINT'` on the first iteration if some port or endpoint is invalid
 
 
 #### Usage
@@ -178,6 +192,22 @@ For example, better to pick timeout as `220ms` for a chunk of `2000` endpoints.
 
 Also, you can take into account latency to the endpoint.
 If your endpoint has latency `300ms` then better to pick timeout as `350ms` and chunkSize as `3100`.
+
+#### Benchmark
+To measure speed on your machine and network:
+```bash
+npm run bench -- localhost:1-65535 2300 250 # endpoints, chunkSize, timeout
+```
+
+---
+
+## Upcoming changes in v2.0.0
+
+- `tcpExistsChunk` will be removed — use `tcpExistsMany`
+- `tcpExistsMany` will yield results one by one (`[host, port, existed]`) instead of arrays
+- `chunkSize` option will be renamed to `concurrency`
+- port in results will always be a `number`
+- Node.js `>=20` will be required
 
 ---
 

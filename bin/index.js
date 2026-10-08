@@ -26,6 +26,6 @@ process.stdout.on('error', (error) => {
 })
 
 cmd(process.argv.slice(2), ac).catch((error) => {
-  console.error(error)
+  console.error(error.code === 'ERR_INVALID_ENDPOINT' ? error.message : error)
   process.exitCode = 1
 })

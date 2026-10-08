@@ -5,8 +5,11 @@ export type TcpExistsResult = [
   result: boolean
 ]
 
+/**
+ * @deprecated will be removed in v2.0.0, use `tcpExistsMany` instead
+ */
 export default function tcpExistsChunk (
-  endpoints: TcpExistsEndpoint[],
+  endpoints: Iterable<TcpExistsEndpoint>,
   options?: {
     timeout?: number
     returnOnlyExisted?: boolean

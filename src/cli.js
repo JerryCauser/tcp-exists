@@ -78,6 +78,9 @@ ${red('Usage')}
   ${name} ${green('example.com:80,8000-8999,443')}
       Ports declaration can be combined.
       Will scan 80, 443, [8000...8999] ports for given host
+
+  ${name} ${green('[::1]:22,80')}
+      IPv6 address must be wrapped in brackets if ports are provided
     
   ${name} ${green('example.com:1-65535')} ${o.v} ${o.cl} ${o.t} ${green(
     '300'
@@ -271,7 +274,8 @@ export function formatOneResult (
 ) {
   const [host, port, exist] = endpointResult
 
-  let str = `${host}:${port}\t${exist ? 'on' : 'off'}` + delimiter
+  const address = host.includes(':') ? `[${host}]` : host
+  let str = `${address}:${port}\t${exist ? 'on' : 'off'}` + delimiter
 
   if (!colorless) {
     str = exist ? green(str) : red(str)

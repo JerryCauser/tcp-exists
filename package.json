@@ -30,7 +30,8 @@
     "release:minor": "commit-and-tag-version --release-as minor",
     "release:major": "commit-and-tag-version --release-as major",
     "push-release": "git push --follow-tags origin master",
-    "prepare": "husky"
+    "prepare": "husky",
+    "bench": "node bench/index.js"
   },
   "repository": {
     "type": "git",

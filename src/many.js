@@ -1,4 +1,5 @@
-import tcpExistsChunk from './chunk.js'
+import { checkChunk } from './chunk.js'
+import { createCachedLookup } from './lookup.js'
 import {
   getEndpoints,
   DEFAULT_CHUNK_SIZE,
@@ -6,15 +7,25 @@ import {
 } from './utilities.js'
 
 /**
- * Attention: passed list will be empty after execution
- * @param {[string, string|number][]|string} endpoints
+ * @param {*} value
+ * @return {boolean}
+ */
+const isIterable = (value) =>
+  value != null &&
+  (typeof value[Symbol.iterator] === 'function' ||
+    typeof value[Symbol.asyncIterator] === 'function')
+
+/**
+ * @param {string|Iterable<TcpExistsEndpoint>|AsyncIterable<TcpExistsEndpoint>} endpoints
+ *    string in format `host:port,port2; host2; host3:port0-port9`
+ *    or any (async) iterable of [host, port]. Passed array is not modified.
  * @param {object} [options]
  * @param {number} [options.chunkSize=DEFAULT_CHUNK_SIZE]
  * @param {number} [options.timeout=DEFAULT_TIMEOUT] - ms.
  *    How to pick best timeout: https://github.com/JerryCauser/tcp-exists#best-timeout-and-chunksize
  * @param {boolean} [options.returnOnlyExisted=true]
  * @param {AbortSignal} [options.signal]
- * @return {AsyncIterable<[string, string|number, boolean][]>}
+ * @return {AsyncIterable<TcpExistsResult[]>}
  */
 async function * tcpExistsMany (endpoints, options) {
   const {
@@ -24,38 +35,37 @@ async function * tcpExistsMany (endpoints, options) {
     signal
   } = options || {}
 
+  const source =
+    typeof endpoints === 'string' ? getEndpoints(endpoints) : endpoints
+
+  if (!isIterable(source)) {
+    throw new TypeError(
+      'endpoints must be a string, an Iterable or an AsyncIterable of [host, port]'
+    )
+  }
+
   const size =
     Number.isInteger(chunkSize) && chunkSize > 0
       ? chunkSize
       : DEFAULT_CHUNK_SIZE
+  const chunkOptions = { timeout, returnOnlyExisted, signal }
+  const lookup = createCachedLookup()
+  let chunk = []
 
-  if (Array.isArray(endpoints)) {
-    while (endpoints.length > 0 && signal?.aborted !== true) {
-      const chunk = endpoints.splice(0, size)
+  for await (const endpoint of source) {
+    if (signal?.aborted === true) return
 
-      yield await tcpExistsChunk(chunk, { timeout, returnOnlyExisted, signal })
+    if (chunk.push(endpoint) === size) {
+      const ready = chunk
+      chunk = []
+
+      yield await checkChunk(ready, chunkOptions, lookup)
     }
-  } else if (typeof endpoints === 'string') {
-    const chunk = []
-
-    for (const item of getEndpoints(endpoints)) {
-      if (chunk.push(item) === size) {
-        if (signal?.aborted === true) return
-
-        yield await tcpExistsChunk(chunk, {
-          timeout,
-          returnOnlyExisted,
-          signal
-        })
-        chunk.length = 0
-      }
-    }
-
-    if (signal?.aborted === true || chunk.length === 0) return
-
-    yield await tcpExistsChunk(chunk, { timeout, returnOnlyExisted, signal })
-    chunk.length = 0
   }
+
+  if (signal?.aborted === true || chunk.length === 0) return
+
+  yield await checkChunk(chunk, chunkOptions, lookup)
 }
 
 export default tcpExistsMany
