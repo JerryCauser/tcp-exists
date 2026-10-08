@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [2.0.1](https://github.com/JerryCauser/tcp-exists/compare/v2.0.0...v2.0.1) (2026-10-08)
+
+### Bug Fixes
+
+* instant abort, port and concurrency validation, default ports error message ([a11b8bb](https://github.com/JerryCauser/tcp-exists/commit/a11b8bbe89f7c80502047e49438f79ddc959c082))
+
 ## [2.0.0](https://github.com/JerryCauser/tcp-exists/compare/v1.7.0...v2.0.0) (2026-10-08)
 
 ### ⚠ BREAKING CHANGES
