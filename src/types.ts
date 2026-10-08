@@ -27,5 +27,6 @@ export type ErrorWithCode<E extends Error, C extends string> = E & { code: C }
 export const hasCode = <C extends string>(
   error: unknown,
   code: C
-): error is ErrorWithCode<Error, C> =>
-  error instanceof Error && (error as { code?: unknown }).code === code
+): error is ErrorWithCode<Error, C> => {
+  return error instanceof Error && (error as { code?: unknown }).code === code
+}
