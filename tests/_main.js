@@ -8,7 +8,8 @@ async function _main ({
   tcpExistsOne,
   getEndpoints,
   DEFAULT_PORTS,
-  cli
+  cli,
+  internals
 }) {
   const PORT_FROM = 15400
   const PORT_TO = 15500
@@ -44,6 +45,14 @@ async function _main ({
       shouldNotExists,
       false,
       '2. tcpExistsOne should return false'
+    )
+
+    const shouldExistsIPv6 = await tcpExistsOne('::1', PORT_FROM)
+
+    assert.strictEqual(
+      shouldExistsIPv6,
+      true,
+      '1.1 tcpExistsOne should work with IPv6 host'
     )
 
     console.log('tcpExistsOne tests passed')
@@ -154,6 +163,72 @@ async function _main ({
       '4.6 tcpExistsMany STRING should yield nothing for empty input'
     )
 
+    const collect = async (iterable, options) => {
+      const result = []
+      for await (const chunk of tcpExistsMany(iterable, options)) {
+        Array.prototype.push.apply(result, chunk)
+      }
+      return result
+    }
+    const smallGold = [
+      ['localhost', PORT_FROM, true],
+      ['localhost', PORT_FROM + 1, true]
+    ]
+
+    const sourceArray = [
+      ['localhost', PORT_FROM - 1],
+      ['localhost', PORT_FROM],
+      ['localhost', PORT_FROM + 1]
+    ]
+    const sourceArrayCopy = sourceArray.map((item) => [...item])
+
+    assert.deepStrictEqual(
+      await collect(sourceArray, { chunkSize: 2 }),
+      smallGold,
+      '4.7.1 tcpExistsMany ARRAY result'
+    )
+    assert.deepStrictEqual(
+      sourceArray,
+      sourceArrayCopy,
+      '4.7.2 tcpExistsMany should not modify passed array'
+    )
+
+    assert.deepStrictEqual(
+      await collect(new Set(sourceArray)),
+      smallGold,
+      '4.8 tcpExistsMany should accept Set'
+    )
+
+    assert.deepStrictEqual(
+      await collect(
+        getEndpoints(`localhost:${PORT_FROM - 1}-${PORT_FROM + 1}`)
+      ),
+      smallGold,
+      '4.9 tcpExistsMany should accept getEndpoints generator'
+    )
+
+    async function * asyncSource () {
+      for (const item of sourceArray) yield item
+    }
+
+    assert.deepStrictEqual(
+      await collect(asyncSource(), { chunkSize: 2 }),
+      smallGold,
+      '4.10 tcpExistsMany should accept AsyncIterable'
+    )
+
+    await assert.rejects(
+      collect(42),
+      TypeError,
+      '4.11 tcpExistsMany should throw TypeError on non-iterable'
+    )
+
+    await assert.rejects(
+      collect(`localhost:${PORT_FROM},0`),
+      { name: 'RangeError', code: 'ERR_INVALID_ENDPOINT' },
+      '4.12 tcpExistsMany should throw on invalid port before scanning'
+    )
+
     console.log('tcpExistsMany tests passed')
   }
 
@@ -189,6 +264,117 @@ async function _main ({
     console.log('tcpExistsOne Abort tests passed')
   }
 
+  async function testOneTimeout () {
+    const TIMEOUT = 300
+
+    let time = Date.now()
+    const result = await tcpExistsOne('8.8.8.8', 15000, TIMEOUT)
+    time = Math.round((Date.now() - time) / 100) * 100
+
+    assert.deepStrictEqual(
+      [result, time],
+      [false, TIMEOUT],
+      '5.1 tcpExistsOne should return false after connection timeout'
+    )
+    console.log('tcpExistsOne Timeout tests passed')
+  }
+
+  async function testLookup () {
+    const { createCachedLookup } = internals
+    const call = (lookup, host, options) =>
+      new Promise((resolve) => {
+        lookup(host, options, (error, address, family) =>
+          resolve({ error, address, family })
+        )
+      })
+
+    const lookup = createCachedLookup()
+
+    const all = await call(lookup, 'localhost', { all: true })
+    assert.ok(
+      Array.isArray(all.address) && all.address.length > 0,
+      '13.1 lookup should return all addresses'
+    )
+
+    const one = await call(lookup, 'localhost', { family: 4 })
+    assert.deepStrictEqual(
+      [one.address, one.family],
+      ['127.0.0.1', 4],
+      '13.2 lookup should filter by family'
+    )
+
+    const missing = await call(lookup, 'not-existed.invalid', {})
+    assert.ok(missing.error, '13.3 lookup should return error')
+
+    const [first, second] = await Promise.all([
+      call(lookup, 'localhost', 0),
+      call(lookup, 'localhost', 0)
+    ])
+    assert.deepStrictEqual(
+      first,
+      second,
+      '13.4 lookup should return the same cached result'
+    )
+
+    const families = await call(lookup, 'localhost', { all: true })
+    assert.strictEqual(
+      families.address.length,
+      new Set(families.address.map((a) => a.family)).size,
+      '13.5 lookup should return only one address of every family'
+    )
+
+    const lookup2 = createCachedLookup()
+    assert.strictEqual(
+      lookup2.getAttempts('localhost'),
+      1,
+      '13.6 lookup should count 1 attempt for not resolved host'
+    )
+    await lookup2.warmUp(['localhost'])
+    assert.strictEqual(
+      lookup2.getAttempts('localhost'),
+      net.getDefaultAutoSelectFamily?.() ? families.address.length : 1,
+      '13.7 lookup should count an attempt for every family of resolved host'
+    )
+
+    console.log('lookup tests passed')
+  }
+
+  async function testDualStack () {
+    if (!net.getDefaultAutoSelectFamily?.()) {
+      console.log('dual stack tests skipped: no happy eyeballs in this node')
+
+      return
+    }
+
+    const { checkEndpoint } = internals
+    const addresses = [
+      { address: '::ffff:10.255.255.1', family: 6 },
+      { address: '127.0.0.1', family: 4 }
+    ]
+    const lookup = (hostname, options, callback) =>
+      options.all
+        ? callback(null, addresses)
+        : callback(null, addresses[0].address, addresses[0].family)
+
+    const time = Date.now()
+    const result = await checkEndpoint(
+      'dual-stack.test',
+      PORT_FROM,
+      200,
+      undefined,
+      lookup,
+      2
+    )
+
+    assert.deepStrictEqual(
+      [result, Math.round((Date.now() - time) / 100) * 100],
+      [true, 200],
+      '15.1 next address family should be tried after timeout of the first one'
+    )
+
+    console.log('dual stack tests passed')
+  }
+
   async function testSignalListeners () {
     const ac = new AbortController()
     const endpoints = []
@@ -217,7 +403,7 @@ async function _main ({
   }
 
   async function testManyAbort () {
-    const ABORT_TIMEOUT = 500
+    const ABORT_TIMEOUT = 1000
     const ac = new AbortController()
     setTimeout(() => ac.abort(), ABORT_TIMEOUT)
 
@@ -240,7 +426,7 @@ async function _main ({
     const result = []
 
     const gen = tcpExistsMany(endpointsToCheck, {
-      timeout: 200,
+      timeout: 400,
       chunkSize: 1,
       signal: ac.signal
     })
@@ -322,6 +508,45 @@ async function _main ({
       toString(getEndpoints(`${hosts[0]}:${ports[0]},`)),
       generateGoldEndpoints(hosts[0], [ports[0]]),
       '7.6 getEndpoints should ignore empty ports'
+    )
+
+    const invalid = [
+      'example.com:0',
+      'example.com:65536',
+      'example.com:abc',
+      'example.com:1-70000',
+      'example.com:1-2-3',
+      '[::1',
+      '[::1]80'
+    ]
+
+    for (const item of invalid) {
+      assert.throws(
+        () => [...getEndpoints(item)],
+        { name: 'RangeError', code: 'ERR_INVALID_ENDPOINT' },
+        `7.7 getEndpoints should throw on "${item}"`
+      )
+    }
+
+    assert.deepStrictEqual(
+      [...getEndpoints('[::1]:80,81-82; ::1', '22')],
+      [
+        ['::1', '80'],
+        ['::1', 81],
+        ['::1', 82],
+        ['::1', '22']
+      ],
+      '7.8 getEndpoints should support IPv6'
+    )
+
+    assert.deepStrictEqual(
+      [...getEndpoints('example.com:3-1')],
+      [
+        ['example.com', 1],
+        ['example.com', 2],
+        ['example.com', 3]
+      ],
+      '7.9 getEndpoints should swap reversed range'
     )
 
     console.log('getEndpoints tests passed')
@@ -546,9 +771,15 @@ async function _main ({
   await testGetEndpoints()
   await testMany()
   await testOneAbort()
+  await testOneTimeout()
   await testManyAbort()
   await testSignalListeners()
   await testOneBusyLoop()
+
+  if (internals) {
+    await testLookup()
+    await testDualStack()
+  }
 
   if (cli) {
     await testCLIParser()
