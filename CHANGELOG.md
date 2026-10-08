@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [2.0.0](https://github.com/JerryCauser/tcp-exists/compare/v1.7.0...v2.0.0) (2026-10-08)
+
+### ⚠ BREAKING CHANGES
+
+* tcpExistsChunk is removed, tcpExistsMany yields single results, chunkSize is renamed to concurrency, DEFAULT_PORTS environment variable is ignored, Node.js >= 22 is required
+
+### Features
+
+* TypeScript, sliding window, auto timeout and new CLI ([b7e9ed0](https://github.com/JerryCauser/tcp-exists/commit/b7e9ed0f3f922a60d0026792eaf5a84ffa8a85f5))
+
 ## [1.7.0](https://github.com/JerryCauser/tcp-exists/compare/v1.6.2...v1.7.0) (2026-10-08)
 
 ### Features
