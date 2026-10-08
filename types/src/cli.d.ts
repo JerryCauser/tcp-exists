@@ -1,4 +1,4 @@
-import { TcpExistsResult } from './chunk'
+import { TcpExistsResult } from './chunk.js'
 
 export interface HelpOptions {
   name: string
@@ -21,12 +21,12 @@ export interface ParsedArguments {
   verbose: boolean
 }
 
-export function cmd(args: string[], ac: AbortController): Promise<void>
-export function parseArgs(args: string[]): ParsedArguments
-export function formatOneResult(
+export function cmd (args: string[], ac?: AbortController): Promise<void>
+export function parseArgs (args: string[]): ParsedArguments
+export function formatOneResult (
   endpointResult: TcpExistsResult,
   delimiter: string,
   colorless: boolean
 ): string
 
-declare function getHelpText(options: HelpOptions): string
+declare function getHelpText (options: HelpOptions): string

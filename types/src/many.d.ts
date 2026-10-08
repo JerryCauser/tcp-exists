@@ -1,6 +1,6 @@
-import { TcpExistsEndpoint, TcpExistsResult } from './chunk'
+import { TcpExistsEndpoint, TcpExistsResult } from './chunk.js'
 
-export default function tcpExistsMany(
+export default function tcpExistsMany (
   endpoints: string | TcpExistsEndpoint[],
   options?: {
     chunkSize?: number

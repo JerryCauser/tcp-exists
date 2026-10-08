@@ -9,25 +9,40 @@ on:
     - cron: "0 10 2 * *"
 
 jobs:
-  build:
+  lint:
+    runs-on: ubuntu-latest
 
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Check that cjs build is up to date
+        run: npm run build && git diff --exit-code -- cjs/index.js
+      - name: Lint
+        run: npm run lint
+      - name: Check types
+        run: npm run test:types
+
+  test:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [16.x, 18.x]
+        node-version: [16.x, 18.x, 20.x, 22.x, 24.x]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
       - name: Install dependencies
-        run: npm ci
-      - name: Run build
-        run: npm run build
+        run: npm ci --ignore-scripts
       - name: Run tests
-        run: npm test
-
+        run: npm run test:run

@@ -5,7 +5,7 @@ export type TcpExistsResult = [
   result: boolean
 ]
 
-export default function tcpExistsChunk(
+export default function tcpExistsChunk (
   endpoints: TcpExistsEndpoint[],
   options?: {
     timeout?: number

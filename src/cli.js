@@ -157,14 +157,26 @@ export async function cmd (args, ac) {
 }
 
 /**
+ * Splits `--flag=value` into `['--flag', 'value']`.
+ * Values are kept as is, even if they are empty or contain `=`
  * @param {string[]} rawArgs
  * @returns {string[]}
  */
 function sanitizeArgs (rawArgs) {
-  return rawArgs
-    .map((arg) => arg.toString().split('='))
-    .flat(1)
-    .filter(Boolean)
+  const args = []
+
+  for (const rawArg of rawArgs) {
+    const arg = rawArg.toString()
+    const eqIndex = arg.indexOf('=')
+
+    if (arg.startsWith('-') && eqIndex !== -1) {
+      args.push(arg.slice(0, eqIndex), arg.slice(eqIndex + 1))
+    } else {
+      args.push(arg)
+    }
+  }
+
+  return args
 }
 
 function getDefaultOptions () {
@@ -221,7 +233,7 @@ export function parseArgs (rawArgs) {
       continue
     }
 
-    options.endpoints.push(arg)
+    if (arg.trim()) options.endpoints.push(arg)
   }
 
   return options

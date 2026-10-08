@@ -17,14 +17,18 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // index.js
-var tcp_exists_exports = {};
-__export(tcp_exists_exports, {
+var index_exports = {};
+__export(index_exports, {
   DEFAULT_CHUNK_SIZE: () => DEFAULT_CHUNK_SIZE,
   DEFAULT_PORTS: () => DEFAULT_PORTS,
   DEFAULT_TIMEOUT: () => DEFAULT_TIMEOUT,
@@ -34,7 +38,7 @@ __export(tcp_exists_exports, {
   tcpExistsMany: () => many_default,
   tcpExistsOne: () => one_default
 });
-module.exports = __toCommonJS(tcp_exists_exports);
+module.exports = __toCommonJS(index_exports);
 
 // src/one.js
 var import_node_net = __toESM(require("node:net"), 1);
@@ -68,25 +72,24 @@ var DEFAULT_PORTS = process.env.DEFAULT_PORTS || Object.keys(DEFAULT_PORTS_DICT)
 function* getEndpoints(argument, defaultPorts = DEFAULT_PORTS) {
   const defaultPortList = (defaultPorts == null ? void 0 : defaultPorts.split(",")) || [];
   if (typeof argument === "string") {
-    argument = argument.split(/[;\s]+/);
+    argument = argument.trim().split(/[;\s]+/);
   }
   for (const item of argument) {
     let [host, ports] = item.split(":");
     host = host == null ? void 0 : host.trim().toLowerCase();
-    ports = ports == null ? void 0 : ports.trim().toLowerCase().split(",");
+    ports = ports == null ? void 0 : ports.trim().toLowerCase().split(",").filter(Boolean);
     if (!Array.isArray(ports) || ports.length === 0) {
       ports = defaultPortList;
     }
-    if (!host || ports.length === 0)
-      return;
+    if (!host || ports.length === 0) continue;
     for (const portChunk of ports) {
       if (portChunk.includes("-")) {
         let [fromPort, toPort] = portChunk.split("-");
         fromPort = Math.max(1, Math.abs(parseInt(fromPort, 10)));
         toPort = Math.min(65535, Math.abs(parseInt(toPort, 10)));
-        if (isNaN(fromPort) || isNaN(toPort))
-          continue;
+        if (isNaN(fromPort) || isNaN(toPort)) continue;
         if (fromPort > toPort) {
+          ;
           [fromPort, toPort] = [toPort, fromPort];
         }
         for (let p = fromPort; p <= toPort; ++p) {
@@ -100,26 +103,31 @@ function* getEndpoints(argument, defaultPorts = DEFAULT_PORTS) {
 }
 
 // src/one.js
-var handleFail = (resolve, socket) => {
-  if (socket && !socket.destroyed)
-    socket.destroy();
-  resolve(false);
-};
-var handleSuccess = (resolve, socket) => {
-  socket.destroy();
-  resolve(true);
-};
 async function tcpExistsOne(host, port, timeout = DEFAULT_TIMEOUT, signal) {
   return await new Promise((resolve) => {
+    if ((signal == null ? void 0 : signal.aborted) === true) {
+      resolve(false);
+      return;
+    }
     let socket;
+    let finished = false;
+    const finish = (exist) => {
+      if (finished) return;
+      finished = true;
+      signal == null ? void 0 : signal.removeEventListener("abort", onAbort);
+      if (socket && !socket.destroyed) socket.destroy();
+      resolve(exist);
+    };
+    const onAbort = () => finish(false);
+    signal == null ? void 0 : signal.addEventListener("abort", onAbort, { once: true });
     try {
-      socket = import_node_net.default.connect({ port, host, signal });
+      socket = import_node_net.default.connect({ port, host });
       socket.setTimeout(timeout);
-      socket.once("connect", () => handleSuccess(resolve, socket));
-      socket.once("error", () => handleFail(resolve, socket));
-      socket.once("timeout", () => handleFail(resolve, socket));
+      socket.once("connect", () => finish(true));
+      socket.once("error", () => finish(false));
+      socket.once("timeout", () => setImmediate(finish, false));
     } catch (e) {
-      handleFail(resolve, socket);
+      finish(false);
     }
   });
 }
@@ -153,17 +161,17 @@ async function* tcpExistsMany(endpoints, options) {
     returnOnlyExisted = true,
     signal
   } = options || {};
+  const size = Number.isInteger(chunkSize) && chunkSize > 0 ? chunkSize : DEFAULT_CHUNK_SIZE;
   if (Array.isArray(endpoints)) {
     while (endpoints.length > 0 && (signal == null ? void 0 : signal.aborted) !== true) {
-      const chunk = endpoints.splice(0, chunkSize);
+      const chunk = endpoints.splice(0, size);
       yield await chunk_default(chunk, { timeout, returnOnlyExisted, signal });
     }
   } else if (typeof endpoints === "string") {
     const chunk = [];
-    for (const item of getEndpoints(endpoints, DEFAULT_PORTS)) {
-      if (chunk.push(item) === DEFAULT_CHUNK_SIZE) {
-        if ((signal == null ? void 0 : signal.aborted) === true)
-          return;
+    for (const item of getEndpoints(endpoints)) {
+      if (chunk.push(item) === size) {
+        if ((signal == null ? void 0 : signal.aborted) === true) return;
         yield await chunk_default(chunk, {
           timeout,
           returnOnlyExisted,
@@ -172,8 +180,7 @@ async function* tcpExistsMany(endpoints, options) {
         chunk.length = 0;
       }
     }
-    if ((signal == null ? void 0 : signal.aborted) === true)
-      return;
+    if ((signal == null ? void 0 : signal.aborted) === true || chunk.length === 0) return;
     yield await chunk_default(chunk, { timeout, returnOnlyExisted, signal });
     chunk.length = 0;
   }

@@ -10,6 +10,7 @@
   "module": "index.js",
   "exports": {
     ".": {
+      "types": "./types/index.d.ts",
       "require": "./cjs/index.js",
       "default": "./index.js"
     }
@@ -19,14 +20,17 @@
   },
   "scripts": {
     "build": "esbuild index.js --bundle --platform=node --format=cjs --target=node16 --outfile='./cjs/index.js'",
-    "release:patch": "standard-version --release-as patch",
-    "release:minor": "standard-version --release-as minor",
-    "release:major": "standard-version --release-as major",
+    "lint": "eslint .",
+    "prettify": "prettier --write -u './**/*.{js,cjs,mjs,ts,cts,mts}'",
+    "fix": "npm run prettify && eslint --fix .",
+    "test:types": "tsc -p tests/types",
+    "test:run": "node tests/index.js && node cjs/test.js",
+    "test": "npm run lint && npm run test:types && npm run test:run",
+    "release:patch": "commit-and-tag-version --release-as patch",
+    "release:minor": "commit-and-tag-version --release-as minor",
+    "release:major": "commit-and-tag-version --release-as major",
     "push-release": "git push --follow-tags origin master",
-    "prettify": "prettier --write -u './*.js' './**/*.js' !./cjs/index.js",
-    "test": "standard && node tests/index.js && node cjs/test.js",
-    "fix": "npm run prettify && standard --fix",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -50,25 +54,16 @@
   },
   "homepage": "https://github.com/JerryCauser/tcp-exists#readme",
   "devDependencies": {
-    "@types/node": "^18.11.18",
-    "esbuild": "^0.16.11",
-    "husky": "^8.0.2",
-    "prettier": "^2.8.1",
-    "standard": "^17.0.0",
-    "standard-version": "^9.5.0"
+    "@types/node": "^22.20.5",
+    "commit-and-tag-version": "^13.2.1",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.12.0",
+    "husky": "^9.1.7",
+    "neostandard": "^0.14.0",
+    "prettier": "^3.9.9",
+    "typescript": "6.0.3"
   },
-  "types": "./src/index.d.ts",
-  "eslintConfig": {
-    "extends": [
-      "eslint:recommended",
-      "standard"
-    ]
-  },
-  "eslintIgnore": [
-    "cjs/index.js",
-    "cjs/constants.js",
-    "types"
-  ],
+  "types": "./types/index.d.ts",
   "files": [
     "/bin/index.js",
     "/cjs/index.js",
@@ -79,5 +74,8 @@
     "LICENSE",
     "CHANGELOG.md",
     "README.md"
-  ]
+  ],
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
 }

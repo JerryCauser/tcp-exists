@@ -10,8 +10,8 @@
 Check if some tcp endpoint (or many) exists. Can be used as a port scanner
 
 - Zero-dependency
-- Small — just 3 functions
-- Fast — scans `65536` endpoints in `~9sec` (via tcpExistsMany)
+- Small — just 4 functions
+- Fast — scans `65536` endpoints in `~9sec` (via tcpExistsMany, when host is an IP or `localhost`)
 - ESM and CJS 
 
 ## CLI Install
@@ -47,7 +47,7 @@ npm i tcp-exists --save
 Arguments:
 - `host` `<string>`
 - `port` `<string> | <number>`
-- `timeout` `<number>` - optional number of `ms`. **Default:** [`DEFAULT_TIMEOUT`][timeout]
+- `timeout` `<number>` - optional connection timeout in `ms`. **Default:** [`DEFAULT_TIMEOUT`][timeout]
 - `signal` `<AbortSignal>` - optional. An AbortSignal that may be used to close a socket and return result ASAP.
 
 Returns:
@@ -57,8 +57,8 @@ Returns:
 ```javascript
 import { tcpExistsOne } from 'tcp-exists'
 
-const exist = await tcpExistsOne('8.8.8.8', 53, 25)
-// check existance of endpoint 8.8.8.8:53 with timeout in 25ms
+const exist = await tcpExistsOne('8.8.8.8', 53, 500)
+// check existence of endpoint 8.8.8.8:53 with timeout in 500ms
 
 console.log(exist) // true
 ```
@@ -72,7 +72,7 @@ It is an async function to check multiple endpoints. If size of endpoints you wa
 #### Arguments:
 - `endpoints` `<[string, string|number][]>` - array of `[host, port]`
 - `options` `<object>` - optional
-    - `timeout` `<number>` - optional number of `ms` to execute on chunk. [How to pick the best timeout][notes-best] **Default:** [`DEFAULT_TIMEOUT`][timeout]
+    - `timeout` `<number>` - optional connection timeout in `ms` for each endpoint. [How to pick the best timeout][notes-best] **Default:** [`DEFAULT_TIMEOUT`][timeout]
     - `returnOnlyExisted` `<boolean>` - optional flag to exclude all non-existed results. **Default:** `true`
     - `signal` `<AbortSignal>` - optional. An AbortSignal that may be used to close a sockets and return result ASAP.
 
@@ -106,10 +106,11 @@ It is an async generator. So you can use it with `for await (... of ...)` or as 
 Useful to use with large amount of endpoints.
 
 #### Arguments:
-- `endpoints` `<[string, string|number][]|string>` - array of `[host, port]` or string in format `host:port,port2; host2; host3:port0-port9`
+- `endpoints` `<[string, string|number][]|string>` - array of `[host, port]` or string in format `host:port,port2; host2; host3:port0-port9`.
+  **Attention:** a passed array is emptied during iteration — pass a copy (`[...endpoints]`) if you need it later.
 - `options` `<object>` - optional
   - `chunkSize` `<number>` - optional chunk size of endpoints to process at once. **Default:** [`DEFAULT_CHUNK_SIZE`][chunk-size]
-  - `timeout` `<number>` - optional number of `ms` to execute on chunk. [How to pick the best timeout][notes-best] **Default:** [`DEFAULT_TIMEOUT`][timeout]
+  - `timeout` `<number>` - optional connection timeout in `ms` for each endpoint. [How to pick the best timeout][notes-best] **Default:** [`DEFAULT_TIMEOUT`][timeout]
   - `returnOnlyExisted` `<boolean>` - optional flag to exclude all non-existed results. **Default:** `true`
   - `signal` `<AbortSignal>` - optional. An AbortSignal that may be used to close a sockets, stop iteration and return last chunk result ASAP.
 

@@ -1,4 +1,4 @@
-export default function tcpExistsOne(
+export default function tcpExistsOne (
   host: string,
   port: number | string,
   timeout?: number,

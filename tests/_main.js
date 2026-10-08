@@ -1,3 +1,4 @@
+import events from 'node:events'
 import net from 'node:net'
 import assert from 'node:assert'
 
@@ -38,11 +39,7 @@ async function _main ({
     const shouldExists = await tcpExistsOne('localhost', PORT_FROM)
     const shouldNotExists = await tcpExistsOne('localhost', PORT_FROM - 1)
 
-    assert.strictEqual(
-      shouldExists,
-      true,
-      '1. tcpExistsOne should return true'
-    )
+    assert.strictEqual(shouldExists, true, '1. tcpExistsOne should return true')
     assert.strictEqual(
       shouldNotExists,
       false,
@@ -103,12 +100,14 @@ async function _main ({
     )
 
     const result2 = []
+    let chunksCount2 = 0
 
     const gen2 = tcpExistsMany(`localhost:${PORT_FROM - 50}-${PORT_TO + 50}`, {
       timeout: 100,
       chunkSize: 32
     })
     for await (const chunk of gen2) {
+      ++chunksCount2
       Array.prototype.push.apply(result2, chunk)
     }
 
@@ -118,7 +117,59 @@ async function _main ({
       '4.2 tcpExistsMany STRING should be equal to gold'
     )
 
+    assert.strictEqual(
+      chunksCount2,
+      Math.ceil((PORT_TO - PORT_FROM + 100) / 32),
+      '4.3 tcpExistsMany STRING should respect chunkSize'
+    )
+
+    let chunksCount3 = 0
+
+    const gen3 = tcpExistsMany(`localhost:${PORT_FROM}-${PORT_FROM + 63}`, {
+      timeout: 100,
+      chunkSize: 32
+    })
+    for await (const chunk of gen3) {
+      ++chunksCount3
+      assert.strictEqual(
+        chunk.length,
+        32,
+        '4.4 tcpExistsMany STRING should not yield partial chunks'
+      )
+    }
+
+    assert.strictEqual(
+      chunksCount3,
+      2,
+      '4.5 tcpExistsMany STRING should not yield extra empty chunk'
+    )
+
+    let chunksCount4 = 0
+
+    for await (const _ of tcpExistsMany('')) ++chunksCount4 // eslint-disable-line no-unused-vars
+
+    assert.strictEqual(
+      chunksCount4,
+      0,
+      '4.6 tcpExistsMany STRING should yield nothing for empty input'
+    )
+
     console.log('tcpExistsMany tests passed')
+  }
+
+  async function testOneBusyLoop () {
+    const result = tcpExistsOne('127.0.0.1', PORT_FROM, 50)
+    await new Promise((resolve) => process.nextTick(resolve))
+    const blockUntil = Date.now() + 200
+    while (Date.now() < blockUntil);
+
+    assert.strictEqual(
+      await result,
+      true,
+      '5.2 answer received during busy event loop should not be lost by timeout'
+    )
+
+    console.log('tcpExistsOne Busy Loop tests passed')
   }
 
   async function testOneAbort () {
@@ -136,6 +187,33 @@ async function _main ({
       '5. tcpExistsMany should be result as false in 500 ms in case of AbortSignal'
     )
     console.log('tcpExistsOne Abort tests passed')
+  }
+
+  async function testSignalListeners () {
+    const ac = new AbortController()
+    const endpoints = []
+
+    for (let i = PORT_FROM - 20; i < PORT_FROM + 20; ++i) {
+      endpoints.push(['localhost', i])
+    }
+
+    await Promise.all(
+      endpoints.map(([host, port]) => tcpExistsOne(host, port, 100, ac.signal))
+    )
+
+    for await (const result of tcpExistsMany([...endpoints], {
+      signal: ac.signal
+    })) {
+      assert.ok(result)
+    }
+
+    assert.strictEqual(
+      events.getEventListeners(ac.signal, 'abort').length,
+      0,
+      '6.3 finished connections should not keep abort listeners on signal'
+    )
+
+    console.log('Signal listeners tests passed')
   }
 
   async function testManyAbort () {
@@ -223,6 +301,29 @@ async function _main ({
       '7.3 getEndpoints test 3 ports comma separated'
     )
 
+    assert.strictEqual(
+      toString(getEndpoints(` ${hosts[0]}:${ports[0]} `)),
+      generateGoldEndpoints(hosts[0], [ports[0]]),
+      '7.4 getEndpoints should ignore surrounding whitespace'
+    )
+
+    assert.strictEqual(
+      toString(
+        getEndpoints([`${hosts[0]}:${ports[0]}`, '', `${hosts[1]}:${ports[1]}`])
+      ),
+      toString([
+        [hosts[0], ports[0]],
+        [hosts[1], ports[1]]
+      ]),
+      '7.5 getEndpoints should skip empty items instead of stopping'
+    )
+
+    assert.strictEqual(
+      toString(getEndpoints(`${hosts[0]}:${ports[0]},`)),
+      generateGoldEndpoints(hosts[0], [ports[0]]),
+      '7.6 getEndpoints should ignore empty ports'
+    )
+
     console.log('getEndpoints tests passed')
   }
 
@@ -237,22 +338,14 @@ async function _main ({
     const { verbose: verbLong } = cli.parseArgs(['--verbose'])
 
     assert.strictEqual(verbShort, true, '10.2.1 cli parser -v not parsed')
-    assert.strictEqual(
-      verbLong,
-      true,
-      '10.2.2 cli parser --verbose not parsed'
-    )
+    assert.strictEqual(verbLong, true, '10.2.2 cli parser --verbose not parsed')
 
     const { colorless: clShort } = cli.parseArgs(['-cl'])
     const { colorless: clLong } = cli.parseArgs(['--colorless'])
     const { colorless: clGentle } = cli.parseArgs(['--colourless'])
 
     assert.strictEqual(clShort, true, '10.3.1 cli parser -cl not parsed')
-    assert.strictEqual(
-      clLong,
-      true,
-      '10.3.2 cli parser --colorless not parsed'
-    )
+    assert.strictEqual(clLong, true, '10.3.2 cli parser --colorless not parsed')
     assert.strictEqual(
       clGentle,
       true,
@@ -274,10 +367,7 @@ async function _main ({
     )
 
     const timeouts = [~~(Math.random() * 2000), ~~(Math.random() * 2000)]
-    const { timeout: timeShort } = cli.parseArgs([
-      '-t',
-      timeouts[0].toString()
-    ])
+    const { timeout: timeShort } = cli.parseArgs(['-t', timeouts[0].toString()])
     const { timeout: timeLong } = cli.parseArgs([
       '--timeout',
       timeouts[1].toString()
@@ -344,6 +434,28 @@ async function _main ({
       toString(endpointsComma),
       toString(argThree),
       '10.7.3 cli parser test 3 ports comma separated'
+    )
+
+    const emptyDelim = cli.parseArgs(['-d', '', hosts[0]])
+
+    assert.deepStrictEqual(
+      [emptyDelim.delimiter, emptyDelim.endpoints],
+      ['', [hosts[0]]],
+      '10.8.1 cli parser empty value should not consume next argument'
+    )
+
+    const eqDelim = cli.parseArgs(['--delimiter==', '--timeout=300', hosts[0]])
+
+    assert.deepStrictEqual(
+      [eqDelim.delimiter, eqDelim.timeout, eqDelim.endpoints],
+      ['=', 300, [hosts[0]]],
+      '10.8.2 cli parser should split only by first "="'
+    )
+
+    assert.deepStrictEqual(
+      cli.parseArgs(['', ' ']).endpoints,
+      [],
+      '10.8.3 cli parser should ignore empty endpoints'
     )
 
     console.log('cli.parser tests passed')
@@ -435,6 +547,8 @@ async function _main ({
   await testMany()
   await testOneAbort()
   await testManyAbort()
+  await testSignalListeners()
+  await testOneBusyLoop()
 
   if (cli) {
     await testCLIParser()

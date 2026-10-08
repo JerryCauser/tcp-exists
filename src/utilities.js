@@ -50,19 +50,19 @@ export function * getEndpoints (argument, defaultPorts = DEFAULT_PORTS) {
   const defaultPortList = defaultPorts?.split(',') || []
 
   if (typeof argument === 'string') {
-    argument = argument.split(/[;\s]+/)
+    argument = argument.trim().split(/[;\s]+/)
   }
 
   for (const item of argument) {
     let [host, ports] = item.split(':')
     host = host?.trim().toLowerCase()
-    ports = ports?.trim().toLowerCase().split(',')
+    ports = ports?.trim().toLowerCase().split(',').filter(Boolean)
 
     if (!Array.isArray(ports) || ports.length === 0) {
       ports = defaultPortList
     }
 
-    if (!host || ports.length === 0) return
+    if (!host || ports.length === 0) continue
 
     for (const portChunk of ports) {
       if (portChunk.includes('-')) {
@@ -73,7 +73,7 @@ export function * getEndpoints (argument, defaultPorts = DEFAULT_PORTS) {
         if (isNaN(fromPort) || isNaN(toPort)) continue
 
         if (fromPort > toPort) {
-          [fromPort, toPort] = [toPort, fromPort]
+          ;[fromPort, toPort] = [toPort, fromPort]
         }
 
         for (let p = fromPort; p <= toPort; ++p) {
