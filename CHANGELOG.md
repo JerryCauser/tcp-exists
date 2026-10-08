@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.7.0](https://github.com/JerryCauser/tcp-exists/compare/v1.6.2...v1.7.0) (2026-10-08)
+
+### Features
+
+* iterable input, endpoint validation, IPv6, dns cache and connect timeout ([4dd2675](https://github.com/JerryCauser/tcp-exists/commit/4dd2675e49f1ffe3e3bda9771466b80268c7ecdc))
+
 ## [1.6.2](https://github.com/JerryCauser/tcp-exists/compare/v1.6.1...v1.6.2) (2026-10-08)
 
 ### Bug Fixes
