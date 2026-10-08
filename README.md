@@ -5,7 +5,6 @@
 [![CodeFactor Grade](https://img.shields.io/codefactor/grade/github/JerryCauser/tcp-exists/master)](https://www.codefactor.io/repository/github/jerrycauser/tcp-exists)
 [![neostandard javascript style](https://img.shields.io/badge/code_style-neostandard-brightgreen?style=flat)](https://github.com/neostandard/neostandard)
 [![node-current](https://img.shields.io/node/v/tcp-exists)](https://nodejs.org)
-[![types](https://img.shields.io/npm/types/tcp-exists)](https://www.npmjs.com/package/tcp-exists)
 [![GitHub](https://img.shields.io/github/license/JerryCauser/tcp-exists)](https://github.com/JerryCauser/tcp-exists/blob/master/LICENSE)
 
 Check if some tcp endpoint (or many) exists. Can be used as a port scanner
