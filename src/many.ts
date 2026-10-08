@@ -15,6 +15,19 @@ import {
   AUTO_TIMEOUT
 } from './utilities.js'
 
+const ABORTED = Symbol('aborted')
+
+/** Throws TypeError if concurrency isn't a positive integer */
+function validateConcurrency (concurrency: unknown): number {
+  if (Number.isInteger(concurrency) && (concurrency as number) > 0) {
+    return concurrency as number
+  }
+
+  throw new TypeError(
+    `concurrency must be a positive integer, got ${String(concurrency)}`
+  )
+}
+
 type Source =
   | { isAsync: true; iterator: AsyncIterator<unknown> }
   | { isAsync: false; iterator: Iterator<unknown> }
@@ -51,7 +64,7 @@ function getSource (endpoints: unknown): Source {
  * A new connection starts as soon as any previous one is finished.
  * Results are yielded one by one in order of completion (not in order of input).
  *
- * Throws TypeError on invalid `endpoints` or `timeout`,
+ * Throws TypeError on invalid `endpoints`, `timeout` or `concurrency`,
  * RangeError with code `ERR_INVALID_ENDPOINT` on invalid endpoint.
  * @param endpoints - string in format `host:port,port2; host2; host3:port0-port9`
  *    or any (async) iterable of [host, port]
@@ -73,19 +86,21 @@ async function * tcpExistsMany (
   const validTimeout = validateTimeout(timeout)
   const estimator =
     validTimeout === AUTO_TIMEOUT ? createTimeoutEstimator() : null
-  const limit =
-    Number.isInteger(concurrency) && concurrency > 0
-      ? concurrency
-      : DEFAULT_CONCURRENCY
+  const limit = validateConcurrency(concurrency)
 
   const active = new Set<() => void>()
   let aborted = false
+  let resolveAborting = (): void => {}
+  const aborting = new Promise<typeof ABORTED>((resolve) => {
+    resolveAborting = () => resolve(ABORTED)
+  })
   const abort = (): void => {
     aborted = true
+    resolveAborting()
     for (const cancel of active) cancel()
   }
   signal?.addEventListener('abort', abort, { once: true })
-  if (signal?.aborted === true) aborted = true
+  if (signal?.aborted === true) abort()
 
   const lookup = createCachedLookup()
   const ready: TcpExistsResult[] = []
@@ -126,8 +141,10 @@ async function * tcpExistsMany (
     while (true) {
       while (canStart()) {
         const next = source.isAsync
-          ? await source.iterator.next()
+          ? await Promise.race([source.iterator.next(), aborting])
           : source.iterator.next()
+
+        if (next === ABORTED) break
 
         if (next.done === true) {
           sourceDone = true
@@ -136,7 +153,7 @@ async function * tcpExistsMany (
 
         const [host, port] = validateEndpoint(next.value)
         const warmingUp = lookup.warmUp(host)
-        if (warmingUp !== undefined) await warmingUp
+        if (warmingUp !== undefined) await Promise.race([warmingUp, aborting])
 
         if (aborted) break
 
@@ -166,7 +183,12 @@ async function * tcpExistsMany (
   } finally {
     abort()
     signal?.removeEventListener('abort', abort)
-    if (!sourceDone) await source.iterator.return?.()
+    if (!sourceDone) {
+      const closing = Promise.resolve(source.iterator.return?.())
+
+      if (signal?.aborted === true) closing.catch(() => {})
+      else await closing
+    }
   }
 }
 

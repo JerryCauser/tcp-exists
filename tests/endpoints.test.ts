@@ -114,7 +114,12 @@ describe('getEndpoints', () => {
   })
 
   it('throws on invalid default ports', () => {
-    expect(() => [...getEndpoints('example.com', '0')]).toThrow(RangeError)
+    expect(() => [...getEndpoints('example.com', '22,0')]).toThrow(
+      expect.objectContaining({
+        name: 'RangeError',
+        message: expect.stringContaining('in default ports "22,0"')
+      })
+    )
   })
 
   it('throws on the first iteration, before yielding anything', () => {

@@ -87,6 +87,10 @@ Arguments:
 Returns:
 - `<Promise<boolean>>`
 
+Throws:
+- `RangeError` with `code: 'ERR_INVALID_ENDPOINT'` - if host is empty or port isn't an integer from `1` to `65535`
+- `TypeError` - if `timeout` isn't a positive number
+
 ### Usage
 ```javascript
 import { tcpExistsOne } from 'tcp-exists'
@@ -119,7 +123,7 @@ Results are yielded **one by one in order of completion** (not in order of input
 Breaking the loop (`break`, `return` or `throw` inside `for await`) closes all sockets in flight.
 
 #### Throws:
-- `TypeError` - if `endpoints` is not a string or an iterable, or `timeout` is neither a positive number nor `'auto'`
+- `TypeError` - if `endpoints` is not a string or an iterable, `timeout` is neither a positive number nor `'auto'`, or `concurrency` isn't a positive integer
 - `RangeError` with `code: 'ERR_INVALID_ENDPOINT'` - if some port or endpoint is invalid. For a string it is thrown before any connection is opened
 
 #### Usage

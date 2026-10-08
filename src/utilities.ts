@@ -58,7 +58,7 @@ const invalidEndpointError = (message: string): InvalidEndpointError =>
     code: 'ERR_INVALID_ENDPOINT' as const
   })
 
-function parsePort (value: unknown, item: string): number {
+function parsePort (value: unknown, where: string): number {
   const port = Number(value)
 
   if (
@@ -69,7 +69,7 @@ function parsePort (value: unknown, item: string): number {
     throw invalidEndpointError(
       `Invalid port "${String(
         value
-      )}" in "${item}". Port must be an integer from ${MIN_PORT} to ${MAX_PORT}`
+      )}" in ${where}. Port must be an integer from ${MIN_PORT} to ${MAX_PORT}`
     )
   }
 
@@ -103,7 +103,7 @@ function splitEndpoint (item: string): [host: string, ports: string] {
   return [item.slice(0, firstColon), item.slice(firstColon + 1)]
 }
 
-function parsePorts (portsString: string, item: string): PortRange[] {
+function parsePorts (portsString: string, where: string): PortRange[] {
   const result: PortRange[] = []
 
   for (const portChunk of portsString.split(',')) {
@@ -115,15 +115,15 @@ function parsePorts (portsString: string, item: string): PortRange[] {
       const [from, to, ...rest] = chunk.split('-').map((p) => p.trim())
 
       if (rest.length > 0) {
-        throw invalidEndpointError(`Invalid port range "${chunk}" in "${item}"`)
+        throw invalidEndpointError(`Invalid port range "${chunk}" in ${where}`)
       }
 
-      const fromPort = parsePort(from, item)
-      const toPort = parsePort(to, item)
+      const fromPort = parsePort(from, where)
+      const toPort = parsePort(to, where)
 
       result.push(fromPort > toPort ? [toPort, fromPort] : [fromPort, toPort])
     } else {
-      const port = parsePort(chunk, item)
+      const port = parsePort(chunk, where)
       result.push([port, port])
     }
   }
@@ -157,10 +157,13 @@ export function * getEndpoints (
 
     if (host === '') continue
 
-    let ports = parsePorts(portsString, item)
+    let ports = parsePorts(portsString, `"${item}"`)
 
     if (ports.length === 0) {
-      defaultPortList ??= parsePorts(defaultPorts || '', 'DEFAULT_PORTS')
+      defaultPortList ??= parsePorts(
+        defaultPorts,
+        `default ports "${defaultPorts}"`
+      )
       ports = defaultPortList
     }
 
@@ -194,5 +197,5 @@ export function validateEndpoint (
     )
   }
 
-  return [host, parsePort(port, item)]
+  return [host, parsePort(port, `"${item}"`)]
 }

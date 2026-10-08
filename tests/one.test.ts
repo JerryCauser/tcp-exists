@@ -71,6 +71,18 @@ describe('tcpExistsOne', () => {
     ).toBe(false)
   })
 
+  it.each([
+    ['localhost', 0],
+    ['localhost', 99999],
+    ['localhost', 'abc'],
+    ['', PORT_FROM]
+  ])('throws RangeError on endpoint %j:%j', async (host, port) => {
+    await expect(tcpExistsOne(host, port)).rejects.toMatchObject({
+      name: 'RangeError',
+      code: 'ERR_INVALID_ENDPOINT'
+    })
+  })
+
   it('throws TypeError on invalid timeout', async () => {
     await expect(tcpExistsOne('localhost', PORT_FROM, 0)).rejects.toThrow(
       TypeError

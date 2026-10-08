@@ -5,7 +5,8 @@ import type {
   TcpExistsResult
 } from '../src/types.js'
 
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import dns from 'node:dns'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import tcpExistsMany from '../src/many.js'
 import { getEndpoints } from '../src/utilities.js'
@@ -200,6 +201,16 @@ describe('tcpExistsMany', () => {
   })
 
   describe('concurrency', () => {
+    it.each([0, -1, 1.5, '100', NaN])(
+      'throws TypeError on concurrency %j',
+      async (concurrency) => {
+        await expect(
+          // @ts-expect-error invalid concurrency
+          collect(`localhost:${PORT_FROM}`, { concurrency })
+        ).rejects.toThrow(TypeError)
+      }
+    )
+
     it('keeps not more than `concurrency` endpoints at once', async () => {
       const concurrency = 7
       let pulled = 0
@@ -293,6 +304,37 @@ describe('tcpExistsMany', () => {
       expect(results).toEqual(
         firstGroup.map((port) => ['localhost', port, true])
       )
+    })
+
+    it('interrupts waiting for async source', async () => {
+      const ac = new AbortController()
+      setTimeout(() => ac.abort(), 200)
+
+      async function * source (): AsyncGenerator<TcpExistsEndpoint> {
+        yield ['localhost', PORT_FROM]
+        await new Promise(() => {})
+      }
+
+      expect(await measure(collect(source(), { signal: ac.signal }))).toEqual([
+        [['localhost', PORT_FROM, true]],
+        200
+      ])
+    })
+
+    it('interrupts waiting for DNS', async () => {
+      const lookup = vi
+        .spyOn(dns.promises, 'lookup')
+        .mockImplementation(() => new Promise(() => {}))
+      const ac = new AbortController()
+      setTimeout(() => ac.abort(), 200)
+
+      try {
+        expect(
+          await measure(collect('slow-dns.test:80', { signal: ac.signal }))
+        ).toEqual([[], 200])
+      } finally {
+        lookup.mockRestore()
+      }
     })
 
     it('yields nothing for already aborted signal', async () => {

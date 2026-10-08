@@ -3,7 +3,7 @@ import type { CachedLookup } from './lookup.js'
 import net from 'node:net'
 import { createCachedLookup } from './lookup.js'
 import { validateTimeout } from './timeout.js'
-import { DEFAULT_TIMEOUT } from './utilities.js'
+import { DEFAULT_TIMEOUT, validateEndpoint } from './utilities.js'
 
 export interface CheckEndpointOptions {
   signal?: AbortSignal
@@ -131,6 +131,9 @@ async function untilSettledOrAborted (
 /**
  * check if tcp address exists or not.
  * If host has both IPv6 and IPv4 addresses, every one gets its own timeout.
+ *
+ * Throws RangeError with code `ERR_INVALID_ENDPOINT` on invalid host or port,
+ * TypeError on invalid `timeout`.
  * @param host
  * @param port
  * @param timeout - connection timeout in ms. **Default:** `DEFAULT_TIMEOUT`
@@ -142,18 +145,19 @@ async function tcpExistsOne (
   timeout: number = DEFAULT_TIMEOUT,
   signal?: AbortSignal
 ): Promise<boolean> {
+  const [validHost, validPort] = validateEndpoint([host, port])
   const validTimeout = validateTimeout(timeout)
   const fixedTimeout = validTimeout === 'auto' ? DEFAULT_TIMEOUT : validTimeout
 
   const lookup = createCachedLookup()
-  const warmingUp = lookup.warmUp(host)
+  const warmingUp = lookup.warmUp(validHost)
 
   if (warmingUp !== undefined) await untilSettledOrAborted(warmingUp, signal)
 
-  return await checkEndpoint(host, port, fixedTimeout, {
+  return await checkEndpoint(validHost, validPort, fixedTimeout, {
     signal,
     lookup,
-    attempts: lookup.getFamiliesCount(host)
+    attempts: lookup.getFamiliesCount(validHost)
   })
 }
 
