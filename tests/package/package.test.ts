@@ -1,6 +1,7 @@
 import type * as TcpExists from 'tcp-exists'
 
 import { spawn } from 'node:child_process'
+import { readFile, readdir } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -91,6 +92,21 @@ describe.each([
     }
 
     expect(results).toEqual([['localhost', PORT_FROM, true]])
+  })
+})
+
+describe('dist', () => {
+  it('does not access environment variables', async () => {
+    const dir = fileURLToPath(new URL('../../dist/', import.meta.url))
+    const files = (await readdir(dir)).filter((file) => /\.c?js$/.test(file))
+
+    expect(files.length).toBeGreaterThan(0)
+
+    for (const file of files) {
+      expect(await readFile(dir + file, 'utf8'), file).not.toContain(
+        'process.env'
+      )
+    }
   })
 })
 

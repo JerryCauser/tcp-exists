@@ -37,8 +37,9 @@ const DEFAULT_PORTS_DICT: Record<number, string> = {
 /** the most popular ports, used for hosts without ports */
 export const DEFAULT_PORTS = Object.keys(DEFAULT_PORTS_DICT).join(',')
 
+/** respects NO_COLOR, FORCE_COLOR, NODE_DISABLE_COLORS and TERM */
 export const isColorEnabled = (): boolean =>
-  process.stdout.isTTY && !process.env.NO_COLOR
+  process.stdout.isTTY && process.stdout.hasColors()
 
 export const red = (str: string): string =>
   isColorEnabled() ? `\x1b[31m${str}\x1b[0m` : str
