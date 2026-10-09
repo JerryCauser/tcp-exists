@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [2.0.2](https://github.com/JerryCauser/tcp-exists/compare/v2.0.1...v2.0.2) (2026-10-09)
+
+### Bug Fixes
+
+* detect color support with stdout.hasColors instead of reading env ([00e5699](https://github.com/JerryCauser/tcp-exists/commit/00e569911082e4baec5f37c95e75c3ab619b526a))
+
 ## [2.0.1](https://github.com/JerryCauser/tcp-exists/compare/v2.0.0...v2.0.1) (2026-10-08)
 
 ### Bug Fixes
